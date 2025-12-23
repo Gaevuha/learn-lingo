@@ -6,21 +6,44 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "import:teachers": "ts-node --project tsconfig.scripts.json scripts/firebase/importTeachers.ts"
   },
   "dependencies": {
     "firebase": "^12.7.0",
+    "izitoast": "^1.4.0",
+    "lucide-react": "^0.562.0",
     "next": "16.1.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "toast": "^0.5.4"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/node": "^20.19.27",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
+    "firebase-admin": "^13.6.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
-  }
+  },
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gaevuha/learn-lingo.git"
+  },
+  "keywords": [
+    "nextjs",
+    "react",
+    "firebase",
+    "language-learning"
+  ],
+  "author": "Serhii Haievoi <gaevuha@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gaevuha/learn-lingo/issues"
+  },
+  "homepage": "https://github.com/Gaevuha/learn-lingo#readme"
 }

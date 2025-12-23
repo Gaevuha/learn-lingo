@@ -1,7 +1,9 @@
+import TeachersList from "@/components/TeachersList";
+
 export default function TeachersPage() {
   return (
-    <div>
-      <h1>Teachers</h1>
+    <div className="container">
+      <TeachersList />
     </div>
   );
 }
