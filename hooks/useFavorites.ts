@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   getUserFavorites,
-  addToFavorites,
-  removeFromFavorites,
+  addToFavorites as apiAddToFavorites,
+  removeFromFavorites as apiRemoveFromFavorites,
 } from "@/lib/firebase";
 import { FavoriteActionResult } from "@/types/user";
 
 export const useFavorites = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +19,7 @@ export const useFavorites = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       if (!user) {
+        console.log("No user, clearing favorites");
         setFavorites([]);
         setLoading(false);
         return;
@@ -24,12 +28,15 @@ export const useFavorites = () => {
       try {
         setLoading(true);
         setError(null);
+        console.log("Fetching favorites for user:", user.uid);
 
         const favoriteIds = await getUserFavorites(user.uid);
+        console.log("Fetched favorites:", favoriteIds);
         setFavorites(favoriteIds);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Unknown error";
+        console.error("Error fetching favorites:", errorMessage);
         setError(`Не вдалося завантажити обране: ${errorMessage}`);
         setFavorites([]);
       } finally {
@@ -39,6 +46,50 @@ export const useFavorites = () => {
 
     fetchFavorites();
   }, [user]);
+
+  const addMutation = useMutation({
+    mutationFn: async (teacherId: string) => {
+      console.log("Adding to favorites:", teacherId);
+      return apiAddToFavorites(user!.uid, teacherId);
+    },
+    onMutate: async (teacherId) => {
+      console.log("Optimistically adding:", teacherId);
+      // Optimistic update
+      setFavorites((prev) => [...prev, teacherId]);
+      return { teacherId };
+    },
+    onSuccess: (_, __, context) => {
+      console.log("Successfully added to favorites");
+      queryClient.invalidateQueries({ queryKey: ["favorites", user?.uid] });
+    },
+    onError: (error, teacherId, context) => {
+      console.error("Failed to add to favorites:", error);
+      // Revert optimistic update
+      setFavorites((prev) => prev.filter((id) => id !== teacherId));
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (teacherId: string) => {
+      console.log("Removing from favorites:", teacherId);
+      return apiRemoveFromFavorites(user!.uid, teacherId);
+    },
+    onMutate: async (teacherId) => {
+      console.log("Optimistically removing:", teacherId);
+      // Optimistic update
+      setFavorites((prev) => prev.filter((id) => id !== teacherId));
+      return { teacherId };
+    },
+    onSuccess: (_, __, context) => {
+      console.log("Successfully removed from favorites");
+      queryClient.invalidateQueries({ queryKey: ["favorites", user?.uid] });
+    },
+    onError: (error, teacherId, context) => {
+      console.error("Failed to remove from favorites:", error);
+      // Revert optimistic update
+      setFavorites((prev) => [...prev, teacherId]);
+    },
+  });
 
   const addToFavoritesHandler = async (
     teacherId: string
@@ -58,9 +109,7 @@ export const useFavorites = () => {
     }
 
     try {
-      await addToFavorites(user.uid, teacherId);
-      setFavorites((prev) => [...prev, teacherId]);
-
+      await addMutation.mutateAsync(teacherId);
       return {
         success: true,
         message: "Додано в обране",
@@ -93,9 +142,7 @@ export const useFavorites = () => {
     }
 
     try {
-      await removeFromFavorites(user.uid, teacherId);
-      setFavorites((prev) => prev.filter((id) => id !== teacherId));
-
+      await removeMutation.mutateAsync(teacherId);
       return {
         success: true,
         message: "Видалено з обраного",

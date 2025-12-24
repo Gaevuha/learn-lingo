@@ -23,3 +23,13 @@ export interface Teacher {
 export interface TeacherCardProps {
   teacher: Teacher;
 }
+
+export interface BookingData {
+  teacherId: string;
+  teacherName: string;
+  studentName: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+}
