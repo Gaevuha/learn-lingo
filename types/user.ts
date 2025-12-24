@@ -10,6 +10,7 @@ export interface UserFavorites {
 
 export interface UserData {
   email: string | null;
+  name?: string;
   favorites: UserFavorites;
   createdAt?: number;
   lastLogin?: number;

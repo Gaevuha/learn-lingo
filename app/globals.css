@@ -1,17 +1,17 @@
 :root {
-  /* Основні кольори */
+  /* Main colors */
   --color-primary: #f4c550;
   --color-primary-light: #fbe9ba;
 
-  /* Зелені відтінки */
+  /* Green shades */
   --color-green: #9fbaae;
   --color-green-light: #cbded3;
 
-  /* Сині відтінки */
+  /* Blue shades */
   --color-blue: #9fb7ce;
   --color-blue-light: #bfd6ea;
 
-  /* Червоний/Рожевий спектр */
+  /* Red/Pink spectrum */
   --color-red: #e0a39a;
   --color-red-light: #f2c0bd;
 
@@ -40,6 +40,7 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 * {

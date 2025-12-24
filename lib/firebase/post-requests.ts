@@ -1,6 +1,6 @@
 import { ref, set, push } from "firebase/database";
 import { db } from "@/firebase/db";
-import { Teacher } from "@/types/teacher";
+import { Teacher, BookingData } from "@/types/teacher";
 import { UserData } from "@/types/user";
 import { handleFirebaseError } from "./db-utils";
 import { get } from "firebase/database";
@@ -103,8 +103,10 @@ export const addToFavorites = async (
   teacherId: string
 ): Promise<void> => {
   try {
+    console.log(`Adding teacher ${teacherId} to favorites for user ${userId}`);
     const favoriteRef = ref(db, `users/${userId}/favorites/${teacherId}`);
     await set(favoriteRef, true);
+    console.log("Successfully added to Firebase");
 
     // Оновлюємо lastLogin
     await set(ref(db, `users/${userId}/lastLogin`), Date.now());
@@ -113,5 +115,33 @@ export const addToFavorites = async (
     throw new Error(
       `Failed to add to favorites: ${handleFirebaseError(error)}`
     );
+  }
+};
+
+/**
+ * Створити бронювання уроку
+ */
+export const createBooking = async (
+  userId: string,
+  bookingData: BookingData
+): Promise<void> => {
+  try {
+    const bookingsRef = ref(db, `users/${userId}/bookings`);
+    const newBookingRef = push(bookingsRef);
+
+    const bookingWithId = {
+      ...bookingData,
+      id: newBookingRef.key!,
+      createdAt: Date.now(),
+      status: "pending",
+    };
+
+    await set(newBookingRef, bookingWithId);
+
+    // Оновлюємо lastLogin
+    await set(ref(db, `users/${userId}/lastLogin`), Date.now());
+  } catch (error) {
+    console.error(`Error creating booking for user ${userId}:`, error);
+    throw new Error(`Failed to create booking: ${handleFirebaseError(error)}`);
   }
 };

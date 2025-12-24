@@ -7,19 +7,22 @@ import { convertToArrayWithId, handleFirebaseError } from "./db-utils";
 /**
  * Отримати всіх вчителів
  */
-export const getAllTeachers = async (): Promise<Teacher[]> => {
+export const getAllTeachers = async (): Promise<{
+  teachers: Teacher[];
+  totalCount: number;
+}> => {
   try {
-    const teachersRef = ref(db, "/");
+    const teachersRef = ref(db, "teachers/");
     const snapshot = await get(teachersRef);
 
     if (snapshot.exists()) {
       const data = snapshot.val();
-      return convertToArrayWithId<Teacher>(data);
+      const teachers = convertToArrayWithId<Teacher>(data);
+      return { teachers, totalCount: teachers.length };
     }
 
-    return [];
+    return { teachers: [], totalCount: 0 };
   } catch (error) {
-    console.error("Error getting teachers:", error);
     throw new Error(`Failed to get teachers: ${handleFirebaseError(error)}`);
   }
 };
@@ -53,14 +56,21 @@ export const getTeacherById = async (
  */
 export const getUserFavorites = async (userId: string): Promise<string[]> => {
   try {
+    console.log("Getting favorites for user:", userId);
     const favoritesRef = ref(db, `users/${userId}/favorites`);
     const snapshot = await get(favoritesRef);
 
     if (snapshot.exists()) {
       const favorites = snapshot.val();
-      return Object.keys(favorites).filter((key) => favorites[key] === true);
+      console.log("Raw favorites data:", favorites);
+      const favoriteIds = Object.keys(favorites).filter(
+        (key) => favorites[key] === true
+      );
+      console.log("Filtered favorite IDs:", favoriteIds);
+      return favoriteIds;
     }
 
+    console.log("No favorites found");
     return [];
   } catch (error) {
     console.error(`Error getting favorites for user ${userId}:`, error);
@@ -110,7 +120,7 @@ export const isTeacherFavorite = async (
  */
 export const getTeachersStats = async () => {
   try {
-    const teachers = await getAllTeachers();
+    const { teachers } = await getAllTeachers();
 
     if (teachers.length === 0) {
       return {
@@ -171,7 +181,7 @@ export const searchTeachers = async (
   searchTerm: string
 ): Promise<Teacher[]> => {
   try {
-    const teachers = await getAllTeachers();
+    const { teachers } = await getAllTeachers();
     const term = searchTerm.toLowerCase();
 
     return teachers.filter((teacher) => {
@@ -187,5 +197,21 @@ export const searchTeachers = async (
   } catch (error) {
     console.error("Error searching teachers:", error);
     throw new Error(`Failed to search teachers: ${handleFirebaseError(error)}`);
+  }
+};
+
+/**
+ * Отримати вчителів по масиву ID
+ */
+export const getTeachersByIds = async (
+  teacherIds: string[]
+): Promise<Teacher[]> => {
+  try {
+    const { teachers } = await getAllTeachers();
+    return teachers.filter((teacher) => teacherIds.includes(teacher.id!));
+  } catch (error) {
+    throw new Error(
+      `Failed to get teachers by ids: ${handleFirebaseError(error)}`
+    );
   }
 };

@@ -4,46 +4,75 @@ import { useState } from "react";
 import { TeacherCardProps } from "@/types/teacher";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useToast } from "@/hooks/useToast";
+import { useAuth } from "@/hooks/useAuth";
+import { useBooking } from "@/hooks/useBooking";
 import Image from "next/image";
+import Modal from "./Modal";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+const bookingSchema = yup.object({
+  name: yup.string().required("Name is required"),
+  email: yup.string().email("Invalid email").required("Email is required"),
+  phone: yup.string().required("Phone is required"),
+  date: yup.string().required("Date is required"),
+  time: yup.string().required("Time is required"),
+});
+
+type BookingFormData = yup.InferType<typeof bookingSchema>;
 
 export default function TeacherCard({ teacher }: TeacherCardProps) {
-  const [showFullExperience, setShowFullExperience] = useState(false);
-  const [showAllReviews, setShowAllReviews] = useState(false);
-  const [showAllConditions, setShowAllConditions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
+  const { user } = useAuth();
   const {
     isFavorite,
     toggleFavorite,
     loading: favoritesLoading,
   } = useFavorites();
+  const { bookTrialLesson, isLoading: bookingLoading } = useBooking();
 
   const { showToast } = useToast();
 
-  const maxConditionsToShow = 2;
-  const maxReviewsToShow = 2;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<BookingFormData>({
+    resolver: yupResolver(bookingSchema),
+  });
 
-  const displayedConditions = showAllConditions
-    ? teacher.conditions
-    : teacher.conditions?.slice(0, maxConditionsToShow) || [];
-
-  const displayedReviews = showAllReviews
-    ? teacher.reviews
-    : teacher.reviews?.slice(0, maxReviewsToShow) || [];
-
-  const hasMoreConditions = teacher.conditions?.length > maxConditionsToShow;
-  const hasMoreReviews = teacher.reviews?.length > maxReviewsToShow;
+  const isFavoriteCurrent = teacher.id ? isFavorite(teacher.id) : false;
+  console.log(
+    `Teacher ${teacher.id}: isFavorite = ${isFavoriteCurrent}, user = ${user?.uid}`
+  );
 
   const handleFavoriteClick = async () => {
     if (!teacher.id) return;
 
+    if (!user) {
+      console.log("No user, showing auth modal");
+      setShowAuthModal(true);
+      return;
+    }
+
+    console.log(
+      `Toggling favorite for teacher ${teacher.id}, current state: ${isFavoriteCurrent}`
+    );
     setIsProcessing(true);
+    const wasFavorite = isFavoriteCurrent;
     try {
       const result = await toggleFavorite(teacher.id);
+      console.log("Toggle result:", result);
       if (result.success) {
         showToast(
           result.message ||
-            (isFavoriteCurrent ? "Видалено з обраного" : "Додано в обране"),
+            (wasFavorite ? "Removed from favorites" : "Added to favorites"),
           "success"
         );
       } else if (result.message) {
@@ -51,283 +80,300 @@ export default function TeacherCard({ teacher }: TeacherCardProps) {
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Невідома помилка";
-      showToast(`Помилка: ${errorMessage}`, "error");
+        error instanceof Error ? error.message : "Unknown error";
+      console.error("Error toggling favorite:", errorMessage);
+      showToast(`Error: ${errorMessage}`, "error");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const isFavoriteCurrent = teacher.id ? isFavorite(teacher.id) : false;
+  const handleBookingSubmit = async (data: BookingFormData) => {
+    if (!user) {
+      showToast("Please sign in to your account", "error");
+      return;
+    }
+
+    if (!teacher.id) {
+      showToast("Error: Teacher ID not found", "error");
+      return;
+    }
+
+    const bookingData = {
+      teacherId: teacher.id,
+      teacherName: `${teacher.name} ${teacher.surname}`,
+      studentName: data.name,
+      email: data.email,
+      phone: data.phone,
+      date: data.date,
+      time: data.time,
+    };
+
+    const result = await bookTrialLesson(bookingData);
+
+    if (result.success) {
+      showToast(result.message, "success");
+      setShowBookingModal(false);
+      reset();
+    } else {
+      showToast(result.message, "error");
+    }
+  };
+
+  if (!teacher) {
+    return null;
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200">
-      <div className="p-6">
-        {/* Профіль вчителя */}
-        <div className="flex items-start gap-4 mb-6">
-          {/* Аватар */}
-          <div className="flex-shrink-0">
-            {teacher.avatar_url ? (
-              <Image
-                src={teacher.avatar_url}
-                alt={`${teacher.name} ${teacher.surname}`}
-                width={80}
-                height={80}
-                className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                  const fallback =
-                    target.parentElement?.querySelector(".avatar-fallback");
-                  fallback?.classList.remove("hidden");
-                }}
-              />
-            ) : null}
-            <div
-              className={`avatar-fallback w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg ${
-                teacher.avatar_url ? "hidden" : ""
-              }`}
-            >
-              <span className="text-2xl font-bold text-blue-600">
-                {teacher.name?.[0] || ""}
-                {teacher.surname?.[0] || ""}
-              </span>
-            </div>
+    <div>
+      {/* Avatar */}
+      <div className="relative shrink-0">
+        <Image
+          src={teacher.avatar_url || "/avatar-placeholder.png"}
+          alt={`${teacher.name} ${teacher.surname}`}
+          width={96}
+          height={96}
+          className="w-24 h-24 rounded-full object-cover border-4 border-yellow-200"
+        />
+        <span className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-sm text-gray-400">Languages</p>
+            <h3 className="text-2xl font-semibold text-gray-900">
+              {teacher.name} {teacher.surname}
+            </h3>
           </div>
 
-          {/* Інформація про вчителя */}
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {teacher.name} {teacher.surname}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center">
-                    <span className="text-yellow-400">★</span>
-                    <span className="ml-1 font-semibold">{teacher.rating}</span>
-                  </div>
-                  <span className="text-gray-500 text-sm">
-                    ({teacher.reviews?.length || 0} відгуків)
-                  </span>
-                  <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                    {teacher.lessons_done} уроків
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                {/* Кнопка "Обране" */}
-                <button
-                  onClick={handleFavoriteClick}
-                  disabled={favoritesLoading || isProcessing || !teacher.id}
-                  className={`p-2 rounded-full transition-all duration-200 ${
-                    isFavoriteCurrent
-                      ? "bg-red-50 text-red-600 hover:bg-red-100"
-                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                  } ${
-                    favoritesLoading || isProcessing
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
-                  title={
-                    isFavoriteCurrent
-                      ? "Видалити з обраного"
-                      : "Додати в обране"
-                  }
-                  aria-label={
-                    isFavoriteCurrent
-                      ? "Видалити з обраного"
-                      : "Додати в обране"
-                  }
-                >
-                  <span className="text-xl">
-                    {isFavoriteCurrent ? "❤️" : "🤍"}
-                  </span>
-                </button>
-
-                {/* Ціна та статус */}
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900">
-                    ${teacher.price_per_hour}
-                    <span className="text-sm font-normal text-gray-500">
-                      /год
-                    </span>
-                  </div>
-                  <div className="text-sm text-green-600 font-medium">
-                    Доступний
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Мови */}
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <span className="text-gray-400">🌐</span>
-              {teacher.languages?.map((language, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
-                >
-                  {language}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Рівні */}
-        <div className="mb-6">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">
-            Рівні
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {teacher.levels?.map((level, index) => (
-              <span
-                key={index}
-                className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 rounded-lg text-sm font-semibold border border-blue-200"
-              >
-                {level}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Досвід */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-amber-500">🏆</span>
-              <h4 className="font-semibold text-gray-800">Досвід</h4>
-            </div>
-            {teacher.experience.length > 150 && (
-              <button
-                onClick={() => setShowFullExperience(!showFullExperience)}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                {showFullExperience ? "Згорнути ▲" : "Розгорнути ▼"}
-              </button>
-            )}
-          </div>
-          <p
-            className={`text-gray-700 ${
-              !showFullExperience ? "line-clamp-3" : ""
-            }`}
+          {/* Favorite */}
+          <button
+            onClick={handleFavoriteClick}
+            disabled={favoritesLoading || isProcessing}
+            className="text-gray-400 hover:text-red-500 transition"
           >
-            {teacher.experience}
-          </p>
+            {favoritesLoading ? "⏳" : isFavoriteCurrent ? "❤️" : "🤍"}
+          </button>
         </div>
 
-        {/* Інформація про урок */}
+        {/* Meta */}
+        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 mt-2">
+          <div className="flex items-center gap-1">
+            📘 <span>Lessons online</span>
+          </div>
+
+          <div>
+            Lessons done: <b>{teacher.lessons_done}</b>
+          </div>
+
+          <div className="flex items-center gap-1">
+            ⭐ <b>{teacher.rating}</b>
+          </div>
+
+          <div className="text-green-600 font-semibold">
+            Price / 1 hour: {teacher.price_per_hour}$
+          </div>
+        </div>
+
+        {/* Languages */}
+        <p className="mt-3 text-gray-700">
+          <span className="font-medium">Speaks:</span>{" "}
+          <span className="underline">{teacher.languages?.join(", ")}</span>
+        </p>
+
+        {/* Lesson info */}
         {teacher.lesson_info && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-blue-600">💬</span>
-              <h4 className="font-semibold text-blue-800">Про урок</h4>
-            </div>
-            <p className="text-blue-900 text-sm">{teacher.lesson_info}</p>
-          </div>
+          <p className="mt-2 text-gray-700">
+            <span className="font-medium">Lesson Info:</span>{" "}
+            {teacher.lesson_info}
+          </p>
         )}
 
-        {/* Умови */}
+        {/* Conditions */}
         {teacher.conditions && teacher.conditions.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-gray-800">Умови</h4>
-              {hasMoreConditions && (
-                <button
-                  onClick={() => setShowAllConditions(!showAllConditions)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  {showAllConditions
-                    ? "Показати менше"
-                    : `Показати всі (${teacher.conditions.length})`}
-                </button>
-              )}
-            </div>
-            <div className="space-y-2">
-              {displayedConditions.map((condition, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <span className="text-green-500 mt-0.5">✓</span>
-                  <span className="text-gray-700">{condition}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <p className="mt-2 text-gray-700">
+            <span className="font-medium">Conditions:</span>{" "}
+            {teacher.conditions.join(" ")}
+          </p>
         )}
 
-        {/* Відгуки */}
-        {teacher.reviews && teacher.reviews.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-gray-800">Відгуки</h4>
-              {hasMoreReviews && (
-                <button
-                  onClick={() => setShowAllReviews(!showAllReviews)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  {showAllReviews
-                    ? "Показати менше"
-                    : `Показати всі (${teacher.reviews.length})`}
-                </button>
-              )}
-            </div>
+        {/* Read more */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 text-sm font-medium underline"
+        >
+          {isExpanded ? "Read less" : "Read more"}
+        </button>
 
-            <div className="space-y-3">
-              {displayedReviews.map((review, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 p-4 rounded-lg border border-gray-200"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-medium">
-                          {review.reviewer_name?.[0] || "?"}
+        {/* Book trial lesson */}
+        <button
+          onClick={() => setShowBookingModal(true)}
+          className="mt-2 ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Book trial lesson
+        </button>
+
+        {/* Expanded content */}
+        {isExpanded && (
+          <div className="mt-4 border-t pt-4">
+            {/* Experience */}
+            <p className="mt-2 text-gray-700">
+              <span className="font-medium">Experience:</span>{" "}
+              {teacher.experience}
+            </p>
+
+            {/* Reviews */}
+            {teacher.reviews && teacher.reviews.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">Reviews:</h4>
+                <div className="space-y-3">
+                  {teacher.reviews.map((review, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium">
+                          {review.reviewer_name}
+                        </span>
+                        <span className="text-yellow-500">
+                          {"⭐".repeat(review.reviewer_rating)}
                         </span>
                       </div>
-                      <span className="font-semibold text-gray-900">
-                        {review.reviewer_name || "Анонім"}
-                      </span>
+                      <p className="text-gray-600">{review.comment}</p>
                     </div>
-                    <div className="flex items-center">
-                      <span className="text-yellow-400">★</span>
-                      <span className="ml-1 font-medium">
-                        {review.reviewer_rating}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-600 text-sm">{review.comment}</p>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Кнопки дій */}
-        <div className="flex gap-3">
-          <button className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg">
-            Записатися на урок
-          </button>
-          <button className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
-            Профіль
-          </button>
+        {/* Levels */}
+        <div className="flex gap-2 mt-4 flex-wrap">
+          {teacher.levels?.map((level) => (
+            <span
+              key={level}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border ${
+                level === "A1 Beginner"
+                  ? "bg-yellow-400 text-black border-yellow-400"
+                  : "border-gray-300 text-gray-700"
+              }`}
+            >
+              #{level}
+            </span>
+          ))}
         </div>
       </div>
 
-      {/* Футер картки */}
-      <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <span>🕒</span>
-            <span>Стаж: {Math.floor(teacher.lessons_done / 20)} років</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span>💲</span>
-            <span className="font-medium">${teacher.price_per_hour}/год</span>
-          </div>
+      {/* Auth Modal */}
+      <Modal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Sign in required</h3>
+          <p className="text-gray-600 mb-4">
+            This functionality is only available for authenticated users.
+          </p>
         </div>
-      </div>
+      </Modal>
+
+      {/* Booking Modal */}
+      <Modal
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+      >
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Book trial lesson</h3>
+          <p className="text-gray-600 mb-4">
+            Teacher: {teacher.name} {teacher.surname}
+          </p>
+          <form
+            onSubmit={handleSubmit(handleBookingSubmit)}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium mb-1">Name</label>
+              <input
+                {...register("name")}
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Email</label>
+              <input
+                {...register("email")}
+                type="email"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Phone</label>
+              <input
+                {...register("phone")}
+                type="tel"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.phone.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Date</label>
+              <input
+                {...register("date")}
+                type="date"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.date && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.date.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Time</label>
+              <input
+                {...register("time")}
+                type="time"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.time && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.time.message}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowBookingModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={bookingLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {bookingLoading ? "Booking..." : "Book lesson"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </div>
   );
 }
