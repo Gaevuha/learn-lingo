@@ -39,7 +39,7 @@ export default function TeachersList({
       if (currentOffset === 0) {
         if (JSON.stringify(prev) !== JSON.stringify(data.teachers)) {
           console.log("Updating allTeachers (reset)", data.teachers);
-      G    return data.teachers;
+          return data.teachers;
         }
         return prev;
       }

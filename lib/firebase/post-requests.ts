@@ -33,7 +33,18 @@ export const createUser = async (
 ): Promise<void> => {
   try {
     const userRef = ref(db, `users/${userId}`);
+    
+    // Перевіряємо, чи користувач вже існує
+    const snapshot = await get(userRef);
+    
+    if (snapshot.exists()) {
+      // Користувач вже існує, тільки оновлюємо lastLogin
+      console.log(`User ${userId} already exists, updating lastLogin only`);
+      await set(ref(db, `users/${userId}/lastLogin`), Date.now());
+      return;
+    }
 
+    // Створюємо нового користувача
     const fullUserData: UserData = {
       ...userData,
       favorites: {},

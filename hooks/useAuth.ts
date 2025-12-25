@@ -55,7 +55,27 @@ export function useAuth() {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    // Додаємо custom параметри для кращої сумісності
+    provider.setCustomParameters({
+      prompt: "select_account",
+    });
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      // Ігноруємо помилку COOP, оскільки вона не критична
+      // Авторизація все одно працює, просто popup не закривається автоматично
+      if (
+        error?.code !== "auth/popup-closed-by-user" &&
+        !error?.message?.includes("Cross-Origin-Opener-Policy")
+      ) {
+        throw error;
+      }
+      // Якщо це помилка COOP, перевіряємо чи користувач все ж авторизований
+      if (auth.currentUser) {
+        return; // Авторизація успішна, необхідно лише закрити popup вручну
+      }
+      throw error;
+    }
   };
 
   const signOut = () => firebaseSignOut(auth);

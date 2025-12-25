@@ -44,8 +44,11 @@ export const useFavorites = () => {
       }
     };
 
-    fetchFavorites();
-  }, [user]);
+    // Завантажуємо дані тільки якщо користувач завантажений
+    if (user) {
+      fetchFavorites();
+    }
+  }, [user?.uid]); // Залежність від user.uid замість user, щоб уникнути зайвих викликів
 
   const addMutation = useMutation({
     mutationFn: async (teacherId: string) => {
@@ -58,9 +61,17 @@ export const useFavorites = () => {
       setFavorites((prev) => [...prev, teacherId]);
       return { teacherId };
     },
-    onSuccess: (_, __, context) => {
-      console.log("Successfully added to favorites");
+    onSuccess: async () => {
+      console.log("Successfully added to favorites, refreshing data");
       queryClient.invalidateQueries({ queryKey: ["favorites", user?.uid] });
+      // Reload favorites from Firebase to ensure sync
+      try {
+        const favoriteIds = await getUserFavorites(user!.uid);
+        console.log("Reloaded favorites after add:", favoriteIds);
+        setFavorites(favoriteIds);
+      } catch (err) {
+        console.error("Error reloading favorites after add:", err);
+      }
     },
     onError: (error, teacherId, context) => {
       console.error("Failed to add to favorites:", error);
@@ -80,9 +91,17 @@ export const useFavorites = () => {
       setFavorites((prev) => prev.filter((id) => id !== teacherId));
       return { teacherId };
     },
-    onSuccess: (_, __, context) => {
-      console.log("Successfully removed from favorites");
+    onSuccess: async () => {
+      console.log("Successfully removed from favorites, refreshing data");
       queryClient.invalidateQueries({ queryKey: ["favorites", user?.uid] });
+      // Reload favorites from Firebase to ensure sync
+      try {
+        const favoriteIds = await getUserFavorites(user!.uid);
+        console.log("Reloaded favorites after remove:", favoriteIds);
+        setFavorites(favoriteIds);
+      } catch (err) {
+        console.error("Error reloading favorites after remove:", err);
+      }
     },
     onError: (error, teacherId, context) => {
       console.error("Failed to remove from favorites:", error);

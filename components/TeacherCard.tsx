@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { TeacherCardProps } from "@/types/teacher";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useToast } from "@/hooks/useToast";
@@ -28,7 +29,8 @@ export default function TeacherCard({ teacher }: TeacherCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
 
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const {
     isFavorite,
     toggleFavorite,
@@ -52,9 +54,29 @@ export default function TeacherCard({ teacher }: TeacherCardProps) {
     `Teacher ${teacher.id}: isFavorite = ${isFavoriteCurrent}, user = ${user?.uid}`
   );
 
-  const handleFavoriteClick = async () => {
-    if (!teacher.id) return;
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log("handleFavoriteClick called", { 
+      teacherId: teacher.id, 
+      user: user?.uid, 
+      authLoading,
+      showAuthModal 
+    });
+    
+    if (!teacher.id) {
+      console.log("No teacher id");
+      return;
+    }
 
+    // Якщо авторизація ще завантажується, не робимо нічого
+    if (authLoading) {
+      console.log("Auth is loading, waiting...");
+      return;
+    }
+
+    // Якщо користувач не авторизований
     if (!user) {
       console.log("No user, showing auth modal");
       setShowAuthModal(true);
@@ -152,10 +174,12 @@ export default function TeacherCard({ teacher }: TeacherCardProps) {
           {/* Favorite */}
           <button
             onClick={handleFavoriteClick}
-            disabled={favoritesLoading || isProcessing}
-            className="text-gray-400 hover:text-red-500 transition"
+            disabled={(favoritesLoading || isProcessing || authLoading) && !!user}
+            className="text-gray-400 hover:text-red-500 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            type="button"
+            aria-label={isFavoriteCurrent ? "Remove from favorites" : "Add to favorites"}
           >
-            {favoritesLoading ? "⏳" : isFavoriteCurrent ? "❤️" : "🤍"}
+            {favoritesLoading && user ? "⏳" : isFavoriteCurrent ? "❤️" : "🤍"}
           </button>
         </div>
 
@@ -267,14 +291,59 @@ export default function TeacherCard({ teacher }: TeacherCardProps) {
       </div>
 
       {/* Auth Modal */}
-      <Modal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Sign in required</h3>
-          <p className="text-gray-600 mb-4">
-            This functionality is only available for authenticated users.
-          </p>
-        </div>
-      </Modal>
+      {showAuthModal && (
+        <Modal isOpen={showAuthModal} onClose={() => {
+          console.log("Closing auth modal");
+          setShowAuthModal(false);
+        }}>
+          <div className="p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">🔒</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Авторизація необхідна
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Цей функціонал доступний лише для авторизованих користувачів.
+                Будь ласка, увійдіть в акаунт або зареєструйтеся, щоб додавати
+                викладачів в обране.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  console.log("Navigate to login");
+                  setShowAuthModal(false);
+                  router.push("/auth/login");
+                }}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Увійти в акаунт
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Navigate to register");
+                  setShowAuthModal(false);
+                  router.push("/auth/register");
+                }}
+                className="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              >
+                Зареєструватися
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Cancel clicked");
+                  setShowAuthModal(false);
+                }}
+                className="w-full px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
+              >
+                Скасувати
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Booking Modal */}
       <Modal
