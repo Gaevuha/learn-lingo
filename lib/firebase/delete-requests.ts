@@ -10,7 +10,6 @@ export const deleteTeacher = async (teacherId: string): Promise<void> => {
   try {
     await remove(ref(db, `/${teacherId}`));
   } catch (error) {
-    console.error(`Error deleting teacher ${teacherId}:`, error);
     throw new Error(`Failed to delete teacher: ${handleFirebaseError(error)}`);
   }
 };
@@ -22,7 +21,6 @@ export const deleteUser = async (userId: string): Promise<void> => {
   try {
     await remove(ref(db, `users/${userId}`));
   } catch (error) {
-    console.error(`Error deleting user ${userId}:`, error);
     throw new Error(`Failed to delete user: ${handleFirebaseError(error)}`);
   }
 };
@@ -37,7 +35,6 @@ export const removeFromFavorites = async (
   try {
     await set(ref(db, `users/${userId}/favorites/${teacherId}`), null);
   } catch (error) {
-    console.error(`Error removing teacher ${teacherId} from favorites:`, error);
     throw new Error(
       `Failed to remove from favorites: ${handleFirebaseError(error)}`
     );
@@ -51,7 +48,6 @@ export const clearAllFavorites = async (userId: string): Promise<void> => {
   try {
     await set(ref(db, `users/${userId}/favorites`), {});
   } catch (error) {
-    console.error(`Error clearing favorites for user ${userId}:`, error);
     throw new Error(`Failed to clear favorites: ${handleFirebaseError(error)}`);
   }
 };
@@ -91,7 +87,6 @@ export const deleteReview = async (
       }
     }
   } catch (error) {
-    console.error(`Error deleting review from teacher ${teacherId}:`, error);
     throw new Error(`Failed to delete review: ${handleFirebaseError(error)}`);
   }
 };

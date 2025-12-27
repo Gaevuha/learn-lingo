@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import TeacherCard from "./TeacherCard";
-import FilterBar from "./FilterBar";
+import TeacherCard from "../TeacherCard/TeacherCard";
+import FilterBar from "../FilterBar/FilterBar";
 import { Teacher } from "@/types/teacher";
 import { useTeachers } from "@/hooks/useTeachers";
+import styles from "./TeachersList.module.css";
 
 interface TeachersListProps {
   initialTeachers: Teacher[];
@@ -37,8 +38,22 @@ export default function TeachersList({
     setAllTeachers((prev) => {
       // Якщо offset === 0, просто замінюємо
       if (currentOffset === 0) {
-        if (JSON.stringify(prev) !== JSON.stringify(data.teachers)) {
-          console.log("Updating allTeachers (reset)", data.teachers);
+        // Порівнюємо по ID, щоб уникнути непотрібних оновлень
+        const prevIds = new Set(
+          prev.map((t) => t.id).filter((id): id is string => Boolean(id))
+        );
+
+        const newIds = new Set(
+          data.teachers
+            .map((t) => t.id)
+            .filter((id): id is string => Boolean(id))
+        );
+
+        const idsEqual =
+          prevIds.size === newIds.size &&
+          Array.from(prevIds).every((id) => newIds.has(id));
+
+        if (!idsEqual) {
           return data.teachers;
         }
         return prev;
@@ -50,19 +65,20 @@ export default function TeachersList({
       );
       if (newTeachers.length === 0) return prev;
 
-      console.log("Appending new teachers:", newTeachers);
       return [...prev, ...newTeachers];
     });
   }, [data, currentOffset]);
 
-  const teachers = allTeachers;
+  // Мемоізуємо список вчителів для запобігання непотрібних ререндерів
+  const teachers = useMemo(() => allTeachers, [allTeachers]);
   const totalCount = data?.totalCount || initialTotalCount;
 
   const handleFilterBarChange = (key: string, value: string) => {
     const newFilters = { ...currentFilters, [key]: value };
     setCurrentFilters(newFilters);
     setCurrentOffset(0);
-    setAllTeachers([]); // Reset when filters change
+    // Не очищаємо список одразу - дані оновляться через useEffect коли прийдуть нові дані
+    // Це запобігає миготінню, оскільки старі картки залишаються до появи нових
   };
 
   const loadMore = () => {
@@ -89,18 +105,18 @@ export default function TeachersList({
 
   if (isLoading && teachers.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="text-gray-600">Loading teachers...</p>
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p className={styles.loadingText}>Loading teachers...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
-          <p className="text-red-600 font-semibold mb-2">
+      <div className={styles.errorContainer}>
+        <div className={styles.errorBox}>
+          <p className={styles.errorText}>
             {error instanceof Error ? error.message : "Failed to load data"}
           </p>
         </div>
@@ -109,7 +125,7 @@ export default function TeachersList({
   }
 
   return (
-    <div className="space-y-8">
+    <div className={styles.container}>
       {/* FilterBar */}
       <FilterBar
         filters={currentFilters}
@@ -120,30 +136,24 @@ export default function TeachersList({
       />
 
       {/* Results */}
-      <div>
-        <ul className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className={styles.results}>
+        <ul className={styles.grid}>
           {teachers.map((teacher) => (
-            <li
-              key={teacher.id}
-              className="bg-white rounded-2xl border border-gray-200 p-6 flex gap-6"
-            >
+            <li key={teacher.id} className={styles.listItem}>
               <TeacherCard teacher={teacher} />
             </li>
           ))}
         </ul>
         {teachers.length < totalCount && !isLoading && (
-          <div className="text-center mt-8">
-            <button
-              onClick={loadMore}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+          <div className={styles.loadMoreContainer}>
+            <button onClick={loadMore} className={styles.loadMoreButton}>
               Load More
             </button>
           </div>
         )}
         {isLoading && teachers.length > 0 && (
-          <div className="text-center mt-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className={styles.loadingSpinner}>
+            <div className={styles.smallSpinner}></div>
           </div>
         )}
       </div>

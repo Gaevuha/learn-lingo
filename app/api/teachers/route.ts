@@ -26,11 +26,11 @@ export async function GET(request: NextRequest) {
     }
 
     const totalCount = teachers.length;
-    const paginatedTeachers = limit > 0 ? teachers.slice(offset, offset + limit) : teachers;
+    const paginatedTeachers =
+      limit > 0 ? teachers.slice(offset, offset + limit) : teachers;
 
     return NextResponse.json({ teachers: paginatedTeachers, totalCount });
   } catch (error) {
-    console.error("Error fetching teachers:", error);
     return NextResponse.json(
       { error: "Failed to fetch teachers" },
       { status: 500 }

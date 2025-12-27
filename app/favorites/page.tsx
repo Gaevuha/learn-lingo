@@ -2,8 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useFavoritesTeachers } from "@/hooks/useFavoritesTeachers";
-import { Teacher } from "@/types/teacher";
-import TeacherCard from "@/components/TeacherCard";
+import TeacherCard from "@/components/TeacherCard/TeacherCard";
 
 export default function FavoritesPage() {
   const { user } = useAuth();

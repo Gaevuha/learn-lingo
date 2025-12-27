@@ -46,7 +46,6 @@ export const getTeacherById = async (
 
     return null;
   } catch (error) {
-    console.error(`Error getting teacher ${teacherId}:`, error);
     throw new Error(`Failed to get teacher: ${handleFirebaseError(error)}`);
   }
 };
@@ -56,24 +55,19 @@ export const getTeacherById = async (
  */
 export const getUserFavorites = async (userId: string): Promise<string[]> => {
   try {
-    console.log("Getting favorites for user:", userId);
     const favoritesRef = ref(db, `users/${userId}/favorites`);
     const snapshot = await get(favoritesRef);
 
     if (snapshot.exists()) {
       const favorites = snapshot.val();
-      console.log("Raw favorites data:", favorites);
       const favoriteIds = Object.keys(favorites).filter(
         (key) => favorites[key] === true
       );
-      console.log("Filtered favorite IDs:", favoriteIds);
       return favoriteIds;
     }
 
-    console.log("No favorites found");
     return [];
   } catch (error) {
-    console.error(`Error getting favorites for user ${userId}:`, error);
     throw new Error(`Failed to get favorites: ${handleFirebaseError(error)}`);
   }
 };
@@ -92,7 +86,6 @@ export const getUserData = async (userId: string): Promise<UserData | null> => {
 
     return null;
   } catch (error) {
-    console.error(`Error getting user data for ${userId}:`, error);
     throw new Error(`Failed to get user data: ${handleFirebaseError(error)}`);
   }
 };
@@ -110,7 +103,6 @@ export const isTeacherFavorite = async (
 
     return snapshot.exists() && snapshot.val() === true;
   } catch (error) {
-    console.error(`Error checking favorite status:`, error);
     return false;
   }
 };
@@ -169,7 +161,6 @@ export const getTeachersStats = async () => {
       levels,
     };
   } catch (error) {
-    console.error("Error getting teachers stats:", error);
     throw new Error(`Failed to get stats: ${handleFirebaseError(error)}`);
   }
 };
@@ -195,7 +186,6 @@ export const searchTeachers = async (
       );
     });
   } catch (error) {
-    console.error("Error searching teachers:", error);
     throw new Error(`Failed to search teachers: ${handleFirebaseError(error)}`);
   }
 };

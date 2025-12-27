@@ -19,7 +19,6 @@ export const useFavorites = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       if (!user) {
-        console.log("No user, clearing favorites");
         setFavorites([]);
         setLoading(false);
         return;
@@ -28,15 +27,12 @@ export const useFavorites = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching favorites for user:", user.uid);
 
         const favoriteIds = await getUserFavorites(user.uid);
-        console.log("Fetched favorites:", favoriteIds);
         setFavorites(favoriteIds);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Unknown error";
-        console.error("Error fetching favorites:", errorMessage);
         setError(`Не вдалося завантажити обране: ${errorMessage}`);
         setFavorites([]);
       } finally {
@@ -52,29 +48,24 @@ export const useFavorites = () => {
 
   const addMutation = useMutation({
     mutationFn: async (teacherId: string) => {
-      console.log("Adding to favorites:", teacherId);
       return apiAddToFavorites(user!.uid, teacherId);
     },
     onMutate: async (teacherId) => {
-      console.log("Optimistically adding:", teacherId);
       // Optimistic update
       setFavorites((prev) => [...prev, teacherId]);
       return { teacherId };
     },
     onSuccess: async () => {
-      console.log("Successfully added to favorites, refreshing data");
       queryClient.invalidateQueries({ queryKey: ["favorites", user?.uid] });
       // Reload favorites from Firebase to ensure sync
       try {
         const favoriteIds = await getUserFavorites(user!.uid);
-        console.log("Reloaded favorites after add:", favoriteIds);
         setFavorites(favoriteIds);
       } catch (err) {
-        console.error("Error reloading favorites after add:", err);
+        // Error reloading favorites
       }
     },
     onError: (error, teacherId, context) => {
-      console.error("Failed to add to favorites:", error);
       // Revert optimistic update
       setFavorites((prev) => prev.filter((id) => id !== teacherId));
     },
@@ -82,29 +73,24 @@ export const useFavorites = () => {
 
   const removeMutation = useMutation({
     mutationFn: async (teacherId: string) => {
-      console.log("Removing from favorites:", teacherId);
       return apiRemoveFromFavorites(user!.uid, teacherId);
     },
     onMutate: async (teacherId) => {
-      console.log("Optimistically removing:", teacherId);
       // Optimistic update
       setFavorites((prev) => prev.filter((id) => id !== teacherId));
       return { teacherId };
     },
     onSuccess: async () => {
-      console.log("Successfully removed from favorites, refreshing data");
       queryClient.invalidateQueries({ queryKey: ["favorites", user?.uid] });
       // Reload favorites from Firebase to ensure sync
       try {
         const favoriteIds = await getUserFavorites(user!.uid);
-        console.log("Reloaded favorites after remove:", favoriteIds);
         setFavorites(favoriteIds);
       } catch (err) {
-        console.error("Error reloading favorites after remove:", err);
+        // Error reloading favorites
       }
     },
     onError: (error, teacherId, context) => {
-      console.error("Failed to remove from favorites:", error);
       // Revert optimistic update
       setFavorites((prev) => [...prev, teacherId]);
     },

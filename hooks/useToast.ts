@@ -1,3 +1,4 @@
+"use client";
 interface IziToastOptions {
   title: string;
   message: string;
@@ -53,8 +54,6 @@ export const useToast = () => {
         messageColor: "#155724",
         icon: "ico-success",
       });
-    } else {
-      console.log(`✅ ${title}: ${message}`);
     }
   };
 
@@ -74,8 +73,6 @@ export const useToast = () => {
         messageColor: "#721c24",
         icon: "ico-error",
       });
-    } else {
-      console.error(`❌ ${title}: ${message}`);
     }
   };
 
@@ -95,8 +92,6 @@ export const useToast = () => {
         messageColor: "#0c5460",
         icon: "ico-info",
       });
-    } else {
-      console.info(`ℹ️ ${title}: ${message}`);
     }
   };
 
@@ -116,8 +111,6 @@ export const useToast = () => {
         messageColor: "#856404",
         icon: "ico-warning",
       });
-    } else {
-      console.warn(`⚠️ ${title}: ${message}`);
     }
   };
 

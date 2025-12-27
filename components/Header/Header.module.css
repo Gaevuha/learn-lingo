@@ -1,0 +1,124 @@
+.header {
+  position: relative;
+  padding: 20px 0;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logoWrapper {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.logoOnTop {
+  z-index: 1001;
+}
+
+/* ===== Burger button (Mobile/Tablet) ===== */
+.burger {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+  font-size: 28px;
+}
+
+/* lines */
+.burger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #111;
+  border-radius: 2px;
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    opacity 0.3s ease;
+}
+
+/* ===== Animation to X ===== */
+.burger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burger.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.burger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.tabletUser {
+  display: none;
+}
+
+/* ================= MOBILE MENU ================= */
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  padding-top: 80px;
+  z-index: 1000;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= TABLET (768px+) ================= */
+@media only screen and (min-width: 768px) {
+  .logoOnTop {
+    transform: translateX(350px);
+  }
+
+  .tabletUser {
+    display: block;
+    margin-left: auto;
+    margin-right: 12px;
+    font-weight: 500;
+  }
+}
+
+/* ================= DESKTOP (1440px+) ================= */
+@media only screen and (min-width: 1440px) {
+  .burger {
+    display: none;
+  }
+
+  .logoOnTop {
+    transform: translateX(0);
+  }
+
+  .tabletUser {
+    display: none;
+  }
+
+  .mobileMenu {
+    display: none;
+  }
+}

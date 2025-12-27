@@ -23,7 +23,6 @@ export const updateTeacher = async (
 
     await update(ref(db), updatesObj);
   } catch (error) {
-    console.error(`Error updating teacher ${teacherId}:`, error);
     throw new Error(`Failed to update teacher: ${handleFirebaseError(error)}`);
   }
 };
@@ -46,7 +45,6 @@ export const updateUser = async (
 
     await update(ref(db), updatesObj);
   } catch (error) {
-    console.error(`Error updating user ${userId}:`, error);
     throw new Error(`Failed to update user: ${handleFirebaseError(error)}`);
   }
 };
@@ -58,7 +56,6 @@ export const updateUserLastLogin = async (userId: string): Promise<void> => {
   try {
     await set(ref(db, `users/${userId}/lastLogin`), Date.now());
   } catch (error) {
-    console.error(`Error updating last login for user ${userId}:`, error);
     throw new Error(
       `Failed to update last login: ${handleFirebaseError(error)}`
     );
@@ -81,10 +78,6 @@ export const incrementTeacherLessons = async (
 
     await set(teacherRef, newLessons);
   } catch (error) {
-    console.error(
-      `Error incrementing lessons for teacher ${teacherId}:`,
-      error
-    );
     throw new Error(
       `Failed to increment lessons: ${handleFirebaseError(error)}`
     );
@@ -116,7 +109,6 @@ export const toggleFavorite = async (
       return true;
     }
   } catch (error) {
-    console.error(`Error toggling favorite for teacher ${teacherId}:`, error);
     throw new Error(`Failed to toggle favorite: ${handleFirebaseError(error)}`);
   }
 };

@@ -2,6 +2,7 @@
   /* Main colors */
   --color-primary: #f4c550;
   --color-primary-light: #fbe9ba;
+  --color-primary-hover: #ffdc86;
 
   /* Green shades */
   --color-green: #9fbaae;
@@ -22,10 +23,12 @@
   /* Кольори тексту */
   --color-text-primary: #121417;
   --color-text-secondary: #8a8a89;
+  --color-text-white: #ffffff;
 
   /* Фони */
   --color-bg-primary: #f8f8f8;
   --color-bg-white: #ffffff;
+  --color-bg-dark: #121417;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,8 +42,16 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  overflow-y: auto;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
+  font-family: var(--font-roboto), sans-serif;
+}
+
+body.modal-open {
+  overflow: hidden;
+  height: 100vh;
+  touch-action: none;
 }
 
 * {
@@ -54,8 +65,34 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+section {
+  padding: 64px 0;
+}
+
+.container {
+  width: 100%;
+  min-width: 320px;
+  max-width: 375px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Styles for Tablet devices */
+@media only screen and (min-width: 768px) {
+  .container {
+    max-width: 768px;
+    padding: 0 32px;
+  }
+}
+
+/* Styles for Desktop devices */
+@media only screen and (min-width: 1440px) {
+  section {
+    padding: 72px 0;
+  }
+
+  .container {
+    max-width: 1440px;
+    padding: 0 64px;
   }
 }
