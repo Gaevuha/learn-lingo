@@ -20,7 +20,6 @@ export function useAuth() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("Auth state changed:", user ? `User ${user.uid}` : "No user");
       if (user) {
         // Create user record in database if it doesn't exist
         try {
@@ -30,7 +29,6 @@ export function useAuth() {
           });
         } catch (error) {
           // User might already exist, ignore error
-          console.log("User creation skipped:", error);
         }
       }
       setUser(user);
@@ -59,20 +57,23 @@ export function useAuth() {
     provider.setCustomParameters({
       prompt: "select_account",
     });
+
     try {
       await signInWithPopup(auth, provider);
-    } catch (error: any) {
+    } catch (error) {
       // Ігноруємо помилку COOP, оскільки вона не критична
       // Авторизація все одно працює, просто popup не закривається автоматично
+      // Глобальний фільтр CoopErrorSuppressor пригнічує console помилки
+      const err = error as { code?: string; message?: string };
       if (
-        error?.code !== "auth/popup-closed-by-user" &&
-        !error?.message?.includes("Cross-Origin-Opener-Policy")
+        err?.code !== "auth/popup-closed-by-user" &&
+        !err?.message?.includes("Cross-Origin-Opener-Policy")
       ) {
         throw error;
       }
       // Якщо це помилка COOP, перевіряємо чи користувач все ж авторизований
       if (auth.currentUser) {
-        return; // Авторизація успішна, необхідно лише закрити popup вручну
+        return; // Авторизація успішна
       }
       throw error;
     }

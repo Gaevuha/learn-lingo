@@ -19,7 +19,6 @@ export const createTeacher = async (
 
     return newTeacherRef.key!;
   } catch (error) {
-    console.error("Error creating teacher:", error);
     throw new Error(`Failed to create teacher: ${handleFirebaseError(error)}`);
   }
 };
@@ -33,13 +32,12 @@ export const createUser = async (
 ): Promise<void> => {
   try {
     const userRef = ref(db, `users/${userId}`);
-    
+
     // Перевіряємо, чи користувач вже існує
     const snapshot = await get(userRef);
-    
+
     if (snapshot.exists()) {
       // Користувач вже існує, тільки оновлюємо lastLogin
-      console.log(`User ${userId} already exists, updating lastLogin only`);
       await set(ref(db, `users/${userId}/lastLogin`), Date.now());
       return;
     }
@@ -54,7 +52,6 @@ export const createUser = async (
 
     await set(userRef, fullUserData);
   } catch (error) {
-    console.error(`Error creating user ${userId}:`, error);
     throw new Error(`Failed to create user: ${handleFirebaseError(error)}`);
   }
 };
@@ -101,7 +98,6 @@ export const addTeacherReview = async (
     await set(ref(db, `/${teacherId}/reviews`), updatedReviews);
     await set(ref(db, `/${teacherId}/rating`), averageRating);
   } catch (error) {
-    console.error(`Error adding review to teacher ${teacherId}:`, error);
     throw new Error(`Failed to add review: ${handleFirebaseError(error)}`);
   }
 };
@@ -114,15 +110,12 @@ export const addToFavorites = async (
   teacherId: string
 ): Promise<void> => {
   try {
-    console.log(`Adding teacher ${teacherId} to favorites for user ${userId}`);
     const favoriteRef = ref(db, `users/${userId}/favorites/${teacherId}`);
     await set(favoriteRef, true);
-    console.log("Successfully added to Firebase");
 
     // Оновлюємо lastLogin
     await set(ref(db, `users/${userId}/lastLogin`), Date.now());
   } catch (error) {
-    console.error(`Error adding teacher ${teacherId} to favorites:`, error);
     throw new Error(
       `Failed to add to favorites: ${handleFirebaseError(error)}`
     );
@@ -152,7 +145,6 @@ export const createBooking = async (
     // Оновлюємо lastLogin
     await set(ref(db, `users/${userId}/lastLogin`), Date.now());
   } catch (error) {
-    console.error(`Error creating booking for user ${userId}:`, error);
     throw new Error(`Failed to create booking: ${handleFirebaseError(error)}`);
   }
 };

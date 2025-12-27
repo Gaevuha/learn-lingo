@@ -1,0 +1,54 @@
+.container {
+  background-color: #000;
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media only screen and (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.filterGroup {
+  /* Filter group styles */
+}
+
+.label {
+  display: block;
+  color: white;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.selectWrapper {
+  position: relative;
+}
+
+.select {
+  width: 100%;
+  appearance: none;
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+  border: none;
+  outline: none;
+}
+
+.selectArrow {
+  pointer-events: none;
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #4b5563;
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "./FilterBar.module.css";
+
 interface FilterBarProps {
   filters: {
     language: string;
@@ -20,16 +22,16 @@ export default function FilterBar({
   prices,
 }: FilterBarProps) {
   return (
-    <div className="bg-black px-6 py-8 rounded-2xl">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className={styles.container}>
+      <div className={styles.grid}>
         {/* Languages */}
-        <div>
-          <label className="block text-white text-sm mb-2">Languages</label>
-          <div className="relative">
+        <div className={styles.filterGroup}>
+          <label className={styles.label}>Languages</label>
+          <div className={styles.selectWrapper}>
             <select
               value={filters.language}
               onChange={(e) => onFilterChange("language", e.target.value)}
-              className="w-full appearance-none bg-white rounded-xl px-5 py-4 text-lg font-medium text-gray-900 focus:outline-none"
+              className={styles.select}
             >
               <option value="all">All Languages</option>
               {languages
@@ -40,22 +42,18 @@ export default function FilterBar({
                   </option>
                 ))}
             </select>
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-gray-600">
-              ▼
-            </span>
+            <span className={styles.selectArrow}>▼</span>
           </div>
         </div>
 
         {/* Level */}
-        <div>
-          <label className="block text-white text-sm mb-2">
-            Level of knowledge
-          </label>
-          <div className="relative">
+        <div className={styles.filterGroup}>
+          <label className={styles.label}>Level of knowledge</label>
+          <div className={styles.selectWrapper}>
             <select
               value={filters.level}
               onChange={(e) => onFilterChange("level", e.target.value)}
-              className="w-full appearance-none bg-white rounded-xl px-5 py-4 text-lg font-medium text-gray-900 focus:outline-none"
+              className={styles.select}
             >
               <option value="all">All Levels</option>
               {levels
@@ -66,20 +64,18 @@ export default function FilterBar({
                   </option>
                 ))}
             </select>
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-gray-600">
-              ▼
-            </span>
+            <span className={styles.selectArrow}>▼</span>
           </div>
         </div>
 
         {/* Price */}
-        <div>
-          <label className="block text-white text-sm mb-2">Price</label>
-          <div className="relative">
+        <div className={styles.filterGroup}>
+          <label className={styles.label}>Price</label>
+          <div className={styles.selectWrapper}>
             <select
               value={filters.price}
               onChange={(e) => onFilterChange("price", e.target.value)}
-              className="w-full appearance-none bg-white rounded-xl px-5 py-4 text-lg font-medium text-gray-900 focus:outline-none"
+              className={styles.select}
             >
               <option value="all">All Prices</option>
               {prices.map((price) => (
@@ -88,12 +84,11 @@ export default function FilterBar({
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-gray-600">
-              ▼
-            </span>
+            <span className={styles.selectArrow}>▼</span>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

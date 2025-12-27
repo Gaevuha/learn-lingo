@@ -1,0 +1,215 @@
+.content {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+}
+
+/* ===== Form Container ===== */
+.formContainer {
+  width: 100%;
+}
+
+.formTitle {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1a1a1a;
+}
+
+.googleButton {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 24px;
+}
+
+.googleButton:hover:not(:disabled) {
+  background-color: #f9fafb;
+}
+
+.googleButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.divider {
+  position: relative;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.divider span {
+  display: inline-block;
+  background-color: #ffffff;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #e5e7eb;
+  z-index: -1;
+}
+
+/* ===== Form ===== */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.error {
+  font-size: 12px;
+  color: #ef4444;
+  margin: 0;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #3b82f6;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 8px;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switchForm {
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.switchLink {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.switchLink:hover {
+  text-decoration: underline;
+}
+
+/* ===== Old styles (kept for compatibility) ===== */
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+}
+
+.text {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.primary,
+.secondary,
+.cancel {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.primary:hover {
+  background-color: #2563eb;
+}
+
+.secondary {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.secondary:hover {
+  background-color: #d1d5db;
+}
+
+.cancel {
+  background-color: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.cancel:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
