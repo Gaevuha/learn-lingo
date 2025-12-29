@@ -19,7 +19,6 @@
   z-index: 1001;
 }
 
-/* ===== Burger button (Mobile/Tablet) ===== */
 .burger {
   width: 24px;
   height: 24px;
@@ -36,7 +35,6 @@
   font-size: 28px;
 }
 
-/* lines */
 .burger span {
   display: block;
   height: 2px;
@@ -47,7 +45,6 @@
     opacity 0.3s ease;
 }
 
-/* ===== Animation to X ===== */
 .burger.open span:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
 }
@@ -65,7 +62,6 @@
   display: none;
 }
 
-/* ================= MOBILE MENU ================= */
 .mobileMenu {
   position: fixed;
   top: 0;
@@ -90,7 +86,6 @@
   }
 }
 
-/* ================= TABLET (768px+) ================= */
 @media only screen and (min-width: 768px) {
   .logoOnTop {
     transform: translateX(350px);
@@ -104,7 +99,6 @@
   }
 }
 
-/* ================= DESKTOP (1440px+) ================= */
 @media only screen and (min-width: 1440px) {
   .burger {
     display: none;

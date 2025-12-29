@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import Logo from "@/components/Logo/Logo";
@@ -11,6 +11,18 @@ export default function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
   const { showToast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.documentElement.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
 
   const handleSignOut = async () => {
     try {
@@ -34,21 +46,18 @@ export default function Header() {
             <Logo />
           </div>
 
-          {/* ===== Desktop navigation ===== */}
           <Navigation
             isAuthenticated={isAuthenticated}
             user={user}
             onSignOut={handleSignOut}
           />
 
-          {/* ===== Tablet username ===== */}
           {isAuthenticated && (
             <span className={styles.tabletUser}>
               {user?.displayName || user?.email}
             </span>
           )}
 
-          {/* ===== Burger ===== */}
           <button
             className={`${styles.burger} ${
               isMobileMenuOpen ? styles.open : ""
@@ -63,7 +72,6 @@ export default function Header() {
           </button>
         </div>
 
-        {/* ===== Mobile / Tablet menu ===== */}
         {isMobileMenuOpen && (
           <div className={styles.mobileMenu}>
             <div className="container">
@@ -78,8 +86,6 @@ export default function Header() {
           </div>
         )}
       </header>
-
-      {/* Modal is rendered via parallel route slot @modal */}
     </>
   );
 }
