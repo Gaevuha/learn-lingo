@@ -62,11 +62,14 @@ export default function Navigation({
                 className={styles.mobileAuthButton}
                 onClick={onLinkClick}
               >
-                Login
+                <svg className={styles.loginIcon}>
+                  <use href="/icons/sprite.svg#icon-log-in"></use>
+                </svg>
+                Log in
               </Link>
               <Link
                 href={getAuthHref("register")}
-                className={styles.mobileAuthButton}
+                className={styles.mobileRegisterButton}
                 onClick={onLinkClick}
               >
                 Register
