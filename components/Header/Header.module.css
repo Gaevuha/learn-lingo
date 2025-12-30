@@ -3,10 +3,15 @@
   padding: 20px 0;
 }
 
-.container {
+.containerHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  min-width: 320px;
+  max-width: 375px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .logoWrapper {
@@ -87,6 +92,10 @@
 }
 
 @media only screen and (min-width: 768px) {
+  .containerHeader {
+    max-width: 768px;
+    padding: 0 64px;
+  }
   .logoOnTop {
     transform: translateX(350px);
   }
@@ -100,6 +109,10 @@
 }
 
 @media only screen and (min-width: 1440px) {
+  .containerHeader {
+    max-width: 1440px;
+    padding: 0 128px;
+  }
   .burger {
     display: none;
   }

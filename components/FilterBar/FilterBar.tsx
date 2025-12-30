@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import styles from "./FilterBar.module.css";
 
 interface FilterBarProps {
@@ -21,74 +22,191 @@ export default function FilterBar({
   levels,
   prices,
 }: FilterBarProps) {
+  const [openSelect, setOpenSelect] = useState<string | null>(null);
+
+  const handleSelectToggle = (name: string) => {
+    setOpenSelect(openSelect === name ? null : name);
+  };
+
+  const handleOptionSelect = (key: string, value: string) => {
+    onFilterChange(key, value);
+    setOpenSelect(null);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (!(event.target as Element).closest(`.${styles.selectWrapper}`)) {
+      setOpenSelect(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  const getCurrentLabel = (key: string, value: string) => {
+    if (key === "language") {
+      return value === "all" ? "All" : value;
+    }
+    if (key === "level") {
+      return value === "all" ? "All" : value;
+    }
+    if (key === "price") {
+      return value === "all" ? "All" : `${value} $`;
+    }
+    return "";
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.grid}>
         {/* Languages */}
         <div className={styles.filterGroup}>
           <label className={styles.label}>Languages</label>
-          <div className={styles.selectWrapper}>
-            <select
-              value={filters.language}
-              onChange={(e) => onFilterChange("language", e.target.value)}
+          <div
+            className={`${styles.selectWrapper} ${
+              openSelect === "language" ? styles.open : ""
+            }`}
+          >
+            <div
               className={styles.select}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectToggle("language");
+              }}
             >
-              <option value="all">All Languages</option>
-              {languages
-                .filter((lang) => lang !== "all")
-                .map((lang) => (
-                  <option key={lang} value={lang}>
-                    {lang}
-                  </option>
-                ))}
-            </select>
-            <span className={styles.selectArrow}>▼</span>
+              <span>{getCurrentLabel("language", filters.language)}</span>
+              <svg className={styles.arrow}>
+                <use href="/icons/sprite.svg#icon-arrow" />
+              </svg>
+            </div>
+
+            {openSelect === "language" && (
+              <div className={styles.dropdown}>
+                <div
+                  className={`${styles.option} ${
+                    filters.language === "all" ? styles.selected : ""
+                  }`}
+                  onClick={() => handleOptionSelect("language", "all")}
+                >
+                  All
+                </div>
+                {languages
+                  .filter((lang) => lang !== "all")
+                  .map((lang) => (
+                    <div
+                      key={lang}
+                      className={`${styles.option} ${
+                        filters.language === lang ? styles.selected : ""
+                      }`}
+                      onClick={() => handleOptionSelect("language", lang)}
+                    >
+                      {lang}
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Level */}
         <div className={styles.filterGroup}>
           <label className={styles.label}>Level of knowledge</label>
-          <div className={styles.selectWrapper}>
-            <select
-              value={filters.level}
-              onChange={(e) => onFilterChange("level", e.target.value)}
+          <div
+            className={`${styles.selectWrapper} ${
+              openSelect === "level" ? styles.open : ""
+            }`}
+          >
+            <div
               className={styles.select}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectToggle("level");
+              }}
             >
-              <option value="all">All Levels</option>
-              {levels
-                .filter((lvl) => lvl !== "all")
-                .map((lvl) => (
-                  <option key={lvl} value={lvl}>
-                    {lvl}
-                  </option>
-                ))}
-            </select>
-            <span className={styles.selectArrow}>▼</span>
+              <span>{getCurrentLabel("level", filters.level)}</span>
+              <svg className={styles.arrow}>
+                <use href="/icons/sprite.svg#icon-arrow" />
+              </svg>
+            </div>
+
+            {openSelect === "level" && (
+              <div className={styles.dropdown}>
+                <div
+                  className={`${styles.option} ${
+                    filters.level === "all" ? styles.selected : ""
+                  }`}
+                  onClick={() => handleOptionSelect("level", "all")}
+                >
+                  All
+                </div>
+                {levels
+                  .filter((lvl) => lvl !== "all")
+                  .map((lvl) => (
+                    <div
+                      key={lvl}
+                      className={`${styles.option} ${
+                        filters.level === lvl ? styles.selected : ""
+                      }`}
+                      onClick={() => handleOptionSelect("level", lvl)}
+                    >
+                      {lvl}
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Price */}
         <div className={styles.filterGroup}>
           <label className={styles.label}>Price</label>
-          <div className={styles.selectWrapper}>
-            <select
-              value={filters.price}
-              onChange={(e) => onFilterChange("price", e.target.value)}
+          <div
+            className={`${styles.selectWrapper} ${
+              openSelect === "price" ? styles.open : ""
+            }`}
+          >
+            <div
               className={styles.select}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectToggle("price");
+              }}
             >
-              <option value="all">All Prices</option>
-              {prices.map((price) => (
-                <option key={price} value={price}>
-                  {price} $
-                </option>
-              ))}
-            </select>
-            <span className={styles.selectArrow}>▼</span>
+              <span>{getCurrentLabel("price", filters.price)}</span>
+              <svg className={styles.arrow}>
+                <use href="/icons/sprite.svg#icon-arrow" />
+              </svg>
+            </div>
+
+            {openSelect === "price" && (
+              <div className={styles.dropdown}>
+                <div
+                  className={`${styles.option} ${
+                    filters.price === "all" ? styles.selected : ""
+                  }`}
+                  onClick={() => handleOptionSelect("price", "all")}
+                >
+                  All
+                </div>
+                {prices.map((price) => (
+                  <div
+                    key={price}
+                    className={`${styles.option} ${
+                      filters.price === price ? styles.selected : ""
+                    }`}
+                    onClick={() => handleOptionSelect("price", price)}
+                  >
+                    {price} $
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
-

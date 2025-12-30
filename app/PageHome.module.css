@@ -1,35 +1,30 @@
-/* ================= MOBILE (BASE) ================= */
-.sectionHero {
-  padding: 20px 0;
-}
-
-.sectionHero .container {
+.sectionHero .containerHero {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
 .sectionHero h1 {
-  font-size: 32px;
   font-weight: 500;
-  line-height: 1.2;
-  color: var(--color-text-primary);
-  margin: 0;
+  font-size: 24px;
+  line-height: 1.16667;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
 }
 
 .sectionHero h1 span {
-  color: var(--color-text-primary);
   background-color: var(--color-primary-light);
   border-radius: 8px;
-  padding: 0 4px;
+  padding: 0 5px;
   font-style: italic;
   font-weight: 400;
 }
 
 .sectionHero p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--color-text-secondary);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.375;
+  letter-spacing: -0.02em;
   margin: 0 0 24px 0;
 }
 
@@ -43,6 +38,7 @@
   border-radius: 12px;
   transition: background-color 0.3s ease;
   align-self: flex-start;
+  margin-bottom: 24px;
 }
 
 .sectionHero a:hover {
@@ -56,145 +52,60 @@
   object-fit: cover;
 }
 
-/* ================= TABLET (768px+) ================= */
 @media only screen and (min-width: 768px) {
-  .sectionHero {
-    padding: 32px 0;
-  }
-
-  .sectionHero .container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .sectionHero .containerHero {
+    display: flex;
+    flex-direction: column;
     gap: 32px;
-    align-items: center;
   }
 
   .sectionHero h1 {
-    font-size: 40px;
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
+    font-size: 32px;
+    margin-bottom: 24px;
   }
 
   .sectionHero p {
-    grid-column: 1 / 2;
-    grid-row: 2 / 3;
-    font-size: 16px;
+    font-size: 18px;
     margin: 0 0 32px 0;
   }
 
   .sectionHero a {
-    grid-column: 1 / 2;
-    grid-row: 3 / 4;
     padding: 16px 48px;
     font-size: 18px;
-  }
-
-  .heroImg {
-    grid-column: 2 / 3;
-    grid-row: 1 / 4;
-    max-width: 100%;
+    margin-bottom: 32px;
   }
 }
 
-/* ================= DESKTOP (1440px+) ================= */
 @media only screen and (min-width: 1440px) {
-  .sectionHero {
-    padding: 48px 0;
+  .sectionHero .containerHero {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  .sectionHero .container {
-    gap: 48px;
+  .wrapContent {
+    border-radius: 30px;
+    width: 720px;
+    height: 530px;
+    padding: 98px 108px 98px 64px;
+    background-color: var(--color-bg-primary);
   }
 
   .sectionHero h1 {
     font-size: 48px;
+    margin-bottom: 32px;
   }
 
   .sectionHero p {
     font-size: 16px;
     max-width: 480px;
+    margin-bottom: 64px;
   }
 
   .heroImg {
     max-width: 568px;
   }
-}
-
-/* ================= STATS SECTION ================= */
-.statsSection {
-  padding: 24px 0;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  padding: 20px;
-  border: 2px dashed var(--color-primary);
-  border-radius: 16px;
-  background-color: var(--color-bg-white);
-}
-
-.statItem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.statNumber {
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-
-.statLabel {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--color-text-secondary);
-}
-
-@media only screen and (min-width: 768px) {
-  .statsSection {
-    padding: 32px 0;
-  }
-
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    padding: 32px;
-  }
-
-  .statNumber {
-    font-size: 28px;
-  }
-
-  .statLabel {
-    font-size: 13px;
-  }
-}
-
-@media only screen and (min-width: 1440px) {
-  .statsSection {
-    padding: 40px 0;
-  }
-
-  .stats {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 80px;
-    padding: 40px 80px;
-  }
-
-  .statItem {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .statNumber {
-    font-size: 28px;
-  }
-
-  .statLabel {
-    font-size: 14px;
+  .sectionHero a {
+    margin-bottom: 0;
   }
 }
