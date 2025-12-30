@@ -37,7 +37,7 @@ export default function Header() {
   return (
     <>
       <header className={styles.header}>
-        <div className={`${styles.container} container`}>
+        <div className={styles.containerHeader}>
           <div
             className={`${styles.logoWrapper} ${
               isMobileMenuOpen ? styles.logoOnTop : ""
