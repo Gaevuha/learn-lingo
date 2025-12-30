@@ -17,10 +17,31 @@ export default function TeachersList({
   totalCount: initialTotalCount,
 }: TeachersListProps) {
   const [allTeachers, setAllTeachers] = useState<Teacher[]>(initialTeachers);
+
+  // Getting unique values for filters
+  const languages = useMemo(() => {
+    const allLanguages = initialTeachers.flatMap(
+      (teacher) => teacher.languages || []
+    );
+    return Array.from(new Set(allLanguages));
+  }, [initialTeachers]);
+
+  const levels = useMemo(() => {
+    const allLevels = initialTeachers.flatMap(
+      (teacher) => teacher.levels || []
+    );
+    return Array.from(new Set(allLevels));
+  }, [initialTeachers]);
+
+  const prices = useMemo(() => {
+    const allPrices = initialTeachers.map((teacher) => teacher.price_per_hour);
+    return Array.from(new Set(allPrices)).sort((a, b) => a - b);
+  }, [initialTeachers]);
+
   const [currentFilters, setCurrentFilters] = useState({
-    language: "all",
-    level: "all",
-    price: "all",
+    language: languages[0] || "",
+    level: levels[0] || "",
+    price: prices[0]?.toString() || "",
   });
   const [currentOffset, setCurrentOffset] = useState(0);
 
@@ -87,22 +108,6 @@ export default function TeachersList({
     }
   };
 
-  // Getting unique values for filters
-  const languages = useMemo(() => {
-    const allLanguages = teachers.flatMap((teacher) => teacher.languages || []);
-    return ["all", ...Array.from(new Set(allLanguages))];
-  }, [teachers]);
-
-  const levels = useMemo(() => {
-    const allLevels = teachers.flatMap((teacher) => teacher.levels || []);
-    return ["all", ...Array.from(new Set(allLevels))];
-  }, [teachers]);
-
-  const prices = useMemo(() => {
-    const allPrices = teachers.map((teacher) => teacher.price_per_hour);
-    return Array.from(new Set(allPrices)).sort((a, b) => a - b);
-  }, [teachers]);
-
   if (isLoading && teachers.length === 0) {
     return (
       <div className={styles.loadingContainer}>
@@ -137,24 +142,44 @@ export default function TeachersList({
 
       {/* Results */}
       <div className={styles.results}>
-        <ul className={styles.grid}>
-          {teachers.map((teacher) => (
-            <li key={teacher.id} className={styles.listItem}>
-              <TeacherCard teacher={teacher} />
-            </li>
-          ))}
-        </ul>
-        {teachers.length < totalCount && !isLoading && (
-          <div className={styles.loadMoreContainer}>
-            <button onClick={loadMore} className={styles.loadMoreButton}>
-              Load More
-            </button>
+        {teachers.length === 0 && !isLoading ? (
+          <div className={styles.noResultsContainer}>
+            <div className={styles.noResultsBox}>
+              <div className={styles.noResultsIcon}>🔍</div>
+              <h3 className={styles.noResultsTitle}>
+                Не знайдено жодного вчителя
+              </h3>
+              <p className={styles.noResultsText}>
+                Не знайдено жодного вчителя з такими параметрами. Спробуйте інші
+                параметри пошуку.
+              </p>
+            </div>
           </div>
-        )}
-        {isLoading && teachers.length > 0 && (
-          <div className={styles.loadingSpinner}>
-            <div className={styles.smallSpinner}></div>
-          </div>
+        ) : (
+          <>
+            <ul className={styles.grid}>
+              {teachers.map((teacher) => (
+                <li key={teacher.id} className={styles.listItem}>
+                  <TeacherCard
+                    teacher={teacher}
+                    selectedLevel={currentFilters.level}
+                  />
+                </li>
+              ))}
+            </ul>
+            {teachers.length < totalCount && !isLoading && (
+              <div className={styles.loadMoreContainer}>
+                <button onClick={loadMore} className={styles.loadMoreButton}>
+                  Load More
+                </button>
+              </div>
+            )}
+            {isLoading && teachers.length > 0 && (
+              <div className={styles.loadingSpinner}>
+                <div className={styles.smallSpinner}></div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

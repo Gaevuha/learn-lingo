@@ -7,7 +7,7 @@ export interface HomeStats {
   nationalitiesCount: number;
 }
 
-export const useStats = () => {
+export const useStats = (initialData?: HomeStats) => {
   return useQuery<HomeStats>({
     queryKey: ["stats"],
     queryFn: async (): Promise<HomeStats> => {
@@ -17,6 +17,8 @@ export const useStats = () => {
       }
       return response.json();
     },
-    staleTime: 1000 * 60 * 10, // 10 хвилин кеш
+    staleTime: 1000 * 60 * 60, // 1 година кеш (статистика рідко змінюється)
+    gcTime: 1000 * 60 * 60 * 24, // 24 години в кеші
+    initialData,
   });
 };

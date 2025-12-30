@@ -48,13 +48,13 @@ export default function FilterBar({
 
   const getCurrentLabel = (key: string, value: string) => {
     if (key === "language") {
-      return value === "all" ? "All" : value;
+      return value;
     }
     if (key === "level") {
-      return value === "all" ? "All" : value;
+      return value;
     }
     if (key === "price") {
-      return value === "all" ? "All" : `${value} $`;
+      return `${value} $`;
     }
     return "";
   };
@@ -85,27 +85,17 @@ export default function FilterBar({
 
             {openSelect === "language" && (
               <div className={styles.dropdown}>
-                <div
-                  className={`${styles.option} ${
-                    filters.language === "all" ? styles.selected : ""
-                  }`}
-                  onClick={() => handleOptionSelect("language", "all")}
-                >
-                  All
-                </div>
-                {languages
-                  .filter((lang) => lang !== "all")
-                  .map((lang) => (
-                    <div
-                      key={lang}
-                      className={`${styles.option} ${
-                        filters.language === lang ? styles.selected : ""
-                      }`}
-                      onClick={() => handleOptionSelect("language", lang)}
-                    >
-                      {lang}
-                    </div>
-                  ))}
+                {languages.map((lang) => (
+                  <div
+                    key={lang}
+                    className={`${styles.option} ${
+                      filters.language === lang ? styles.selected : ""
+                    }`}
+                    onClick={() => handleOptionSelect("language", lang)}
+                  >
+                    {lang}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -134,27 +124,17 @@ export default function FilterBar({
 
             {openSelect === "level" && (
               <div className={styles.dropdown}>
-                <div
-                  className={`${styles.option} ${
-                    filters.level === "all" ? styles.selected : ""
-                  }`}
-                  onClick={() => handleOptionSelect("level", "all")}
-                >
-                  All
-                </div>
-                {levels
-                  .filter((lvl) => lvl !== "all")
-                  .map((lvl) => (
-                    <div
-                      key={lvl}
-                      className={`${styles.option} ${
-                        filters.level === lvl ? styles.selected : ""
-                      }`}
-                      onClick={() => handleOptionSelect("level", lvl)}
-                    >
-                      {lvl}
-                    </div>
-                  ))}
+                {levels.map((lvl) => (
+                  <div
+                    key={lvl}
+                    className={`${styles.option} ${
+                      filters.level === lvl ? styles.selected : ""
+                    }`}
+                    onClick={() => handleOptionSelect("level", lvl)}
+                  >
+                    {lvl}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -183,14 +163,6 @@ export default function FilterBar({
 
             {openSelect === "price" && (
               <div className={styles.dropdown}>
-                <div
-                  className={`${styles.option} ${
-                    filters.price === "all" ? styles.selected : ""
-                  }`}
-                  onClick={() => handleOptionSelect("price", "all")}
-                >
-                  All
-                </div>
                 {prices.map((price) => (
                   <div
                     key={price}

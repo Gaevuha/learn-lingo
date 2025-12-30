@@ -18,7 +18,7 @@ export default async function TeachersPage() {
 
   return (
     <section className={`${styles.sectionTeachers} section`}>
-      <div className="container">
+      <div className={`${styles.containerTeacher} container`}>
         {loadError ? (
           <div style={{ padding: 24 }}>
             <h2>Failed to load Teachers</h2>

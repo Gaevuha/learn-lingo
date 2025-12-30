@@ -38,6 +38,12 @@
   color: #374151;
   font-size: 16px;
   font-weight: 500;
+  transition: color 0.3s;
+}
+
+.mobileNav a.activeLink {
+  color: #f4c550;
+  font-weight: 700;
 }
 
 .mobileActions {
@@ -129,6 +135,10 @@
 
 .desktopNav a:hover,
 .desktopNav button:hover {
+  color: var(--color-primary);
+}
+
+.desktopNav a.activeLink {
   color: var(--color-primary);
 }
 
