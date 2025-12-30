@@ -33,15 +33,27 @@ export default function Navigation({
     return (
       <div className={styles.mobileNavWrapper}>
         <nav className={styles.mobileNav}>
-          <Link href="/" onClick={onLinkClick}>
+          <Link
+            href="/"
+            onClick={onLinkClick}
+            className={pathname === "/" ? styles.activeLink : ""}
+          >
             Home
           </Link>
-          <Link href="/teachers" onClick={onLinkClick}>
+          <Link
+            href="/teachers"
+            onClick={onLinkClick}
+            className={pathname === "/teachers" ? styles.activeLink : ""}
+          >
             Teachers
           </Link>
 
           {isAuthenticated && (
-            <Link href="/favorites" onClick={onLinkClick}>
+            <Link
+              href="/favorites"
+              onClick={onLinkClick}
+              className={pathname === "/favorites" ? styles.activeLink : ""}
+            >
               Favorites
             </Link>
           )}
@@ -83,23 +95,33 @@ export default function Navigation({
 
   return (
     <nav className={styles.desktopNav}>
-      <Link href="/" className={styles.homeLink}>
+      <Link
+        href="/"
+        className={`${styles.homeLink} ${
+          pathname === "/" ? styles.activeLink : ""
+        }`}
+      >
         Home
       </Link>
       <Link
         href="/teachers"
-        className={
+        className={`${
           isAuthenticated
             ? styles.teachersLink
             : styles.teachersLinkUnauthenticated
-        }
+        } ${pathname === "/teachers" ? styles.activeLink : ""}`}
       >
         Teachers
       </Link>
 
       {isAuthenticated ? (
         <>
-          <Link href="/favorites" className={styles.favoritesLink}>
+          <Link
+            href="/favorites"
+            className={`${styles.favoritesLink} ${
+              pathname === "/favorites" ? styles.activeLink : ""
+            }`}
+          >
             Favorites
           </Link>
           <span className={styles.userName}>

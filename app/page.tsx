@@ -2,8 +2,29 @@ import styles from "./PageHome.module.css";
 import Image from "next/image";
 import Link from "next/link";
 import { StatsSection } from "@/components/StatsSection/StatsSection";
+import type { HomeStats } from "@/hooks/useStats";
 
-export default function HomePage() {
+async function getStats(): Promise<HomeStats | null> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const response = await fetch(`${baseUrl}/api/stats`, {
+      next: { revalidate: 3600 }, // Оновлювати кожну годину
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Failed to fetch stats:", error);
+    return null;
+  }
+}
+
+export default async function HomePage() {
+  const stats = await getStats();
+
   return (
     <>
       <section className={`${styles.sectionHero} section`}>
@@ -30,7 +51,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <StatsSection />
+      <StatsSection initialData={stats || undefined} />
     </>
   );
 }

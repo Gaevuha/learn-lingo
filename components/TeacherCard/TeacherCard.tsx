@@ -1,11 +1,13 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { LuBookOpen } from "react-icons/lu";
+import { FaStar, FaHeart, FaRegHeart } from "react-icons/fa";
 
 import { TeacherCardProps } from "@/types/teacher";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,7 +32,7 @@ const bookingSchema = yup.object({
 
 type BookingFormData = yup.InferType<typeof bookingSchema>;
 
-function TeacherCard({ teacher }: TeacherCardProps) {
+function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -46,15 +48,31 @@ function TeacherCard({ teacher }: TeacherCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const isFavoriteCurrent = teacher.id ? isFavorite(teacher.id) : false;
+
+  // Close expanded state when clicking outside the card
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isExpanded]);
 
   /* =======================
      Booking form
   ======================= */
   const {
-    register,
-    handleSubmit,
     formState: { errors },
     reset,
   } = useForm<BookingFormData>({
@@ -137,7 +155,7 @@ function TeacherCard({ teacher }: TeacherCardProps) {
 
   return (
     <>
-      <div className={styles.card}>
+      <div ref={cardRef} className={styles.card}>
         {/* Avatar */}
         <div className={styles.avatarContainer}>
           <Image
@@ -160,7 +178,27 @@ function TeacherCard({ teacher }: TeacherCardProps) {
                 {teacher.name} {teacher.surname}
               </h3>
             </div>
+            <div className={styles.meta}>
+              <span>
+                <LuBookOpen className={styles.iconBook} />
+                Lessons online
+              </span>
 
+              <span>
+                Lessons done:{" "}
+                <b className={styles.lessonCount}>{teacher.lessons_done}</b>
+              </span>
+              <span>
+                <FaStar className={styles.iconStar} />
+                {teacher.rating}
+              </span>
+              <span className={styles.price}>
+                Price / 1 hour:{" "}
+                <span className={styles.priceAccent}>
+                  {teacher.price_per_hour}$
+                </span>
+              </span>
+            </div>
             <button
               onClick={handleFavoriteClick}
               disabled={
@@ -169,25 +207,15 @@ function TeacherCard({ teacher }: TeacherCardProps) {
               className={styles.favoriteButton}
               aria-label="favorite"
             >
-              {favoritesLoading && user
-                ? "⏳"
-                : isFavoriteCurrent
-                ? "❤️"
-                : "🤍"}
+              {isFavoriteCurrent ? (
+                <FaHeart className={styles.favoriteActive} />
+              ) : (
+                <FaRegHeart className={styles.favoriteInactive} />
+              )}
             </button>
           </div>
 
           {/* Meta */}
-          <div className={styles.meta}>
-            <span>📘 Lessons online</span>
-            <span>
-              Lessons done: <b>{teacher.lessons_done}</b>
-            </span>
-            <span>⭐ {teacher.rating}</span>
-            <span className={styles.price}>
-              Price / 1 hour: {teacher.price_per_hour}$
-            </span>
-          </div>
 
           {/* Languages */}
           <p className={styles.speaks}>
@@ -208,12 +236,14 @@ function TeacherCard({ teacher }: TeacherCardProps) {
           )}
 
           {/* Read more */}
-          <button
-            className={styles.readMoreButton}
-            onClick={() => setIsExpanded((prev) => !prev)}
-          >
-            {isExpanded ? "Read less" : "Read more"}
-          </button>
+          {!isExpanded && (
+            <button
+              className={styles.readMoreButton}
+              onClick={() => setIsExpanded(true)}
+            >
+              Read more
+            </button>
+          )}
 
           {/* Expanded */}
           {isExpanded && (
@@ -224,11 +254,23 @@ function TeacherCard({ teacher }: TeacherCardProps) {
 
               {teacher.reviews?.length > 0 && (
                 <div className={styles.reviews}>
-                  <h4>Reviews</h4>
                   {teacher.reviews.map((review, index) => (
                     <div key={index} className={styles.reviewItem}>
-                      <b>{review.reviewer_name}</b>
-                      <span>{"⭐".repeat(review.reviewer_rating)}</span>
+                      <div className={styles.reviewHeader}>
+                        <div className={styles.reviewerAvatar}>
+                          {review.reviewer_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className={styles.reviewerInfo}>
+                          <b>{review.reviewer_name}</b>
+                          <div className={styles.reviewRating}>
+                            {Array.from({ length: review.reviewer_rating }).map(
+                              (_, i) => (
+                                <FaStar key={i} />
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </div>
                       <p>{review.comment}</p>
                     </div>
                   ))}
@@ -239,27 +281,43 @@ function TeacherCard({ teacher }: TeacherCardProps) {
 
           {/* Levels */}
           <div className={styles.levels}>
-            {teacher.levels?.map((level) => (
-              <span key={level} className={styles.levelBadge}>
-                #{level}
-              </span>
-            ))}
+            {teacher.levels?.map((level) => {
+              const isActive =
+                selectedLevel &&
+                selectedLevel !== "all" &&
+                level === selectedLevel;
+
+              return (
+                <span
+                  key={level}
+                  className={`${styles.levelBadge} ${
+                    isActive ? styles.levelBadgeActive : ""
+                  }`}
+                >
+                  #{level}
+                </span>
+              );
+            })}
           </div>
 
           {/* Booking */}
-          <button
-            className={styles.bookButton}
-            onClick={() => {
-              if (!user) {
-                const ru = pathname || "/";
-                router.push(`/auth/login?returnUrl=${encodeURIComponent(ru)}`);
-              } else {
-                setShowBookingModal(true);
-              }
-            }}
-          >
-            Book trial lesson
-          </button>
+          {isExpanded && (
+            <button
+              className={styles.bookButton}
+              onClick={() => {
+                if (!user) {
+                  const ru = pathname || "/";
+                  router.push(
+                    `/auth/login?returnUrl=${encodeURIComponent(ru)}`
+                  );
+                } else {
+                  setShowBookingModal(true);
+                }
+              }}
+            >
+              Book trial lesson
+            </button>
+          )}
         </div>
       </div>
 
@@ -279,5 +337,8 @@ function TeacherCard({ teacher }: TeacherCardProps) {
    Memo
 ======================= */
 export default memo(TeacherCard, (prev, next) => {
-  return prev.teacher.id === next.teacher.id;
+  return (
+    prev.teacher.id === next.teacher.id &&
+    prev.selectedLevel === next.selectedLevel
+  );
 });

@@ -22,6 +22,7 @@ export interface Teacher {
 
 export interface TeacherCardProps {
   teacher: Teacher;
+  selectedLevel?: string;
 }
 
 export interface BookingData {

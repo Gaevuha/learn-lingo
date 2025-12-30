@@ -1,10 +1,15 @@
 "use client";
 
 import { useStats } from "@/hooks/useStats";
+import type { HomeStats } from "@/hooks/useStats";
 import styles from "./StatsSection.module.css";
 
-export const StatsSection = () => {
-  const { data: stats, isLoading, error } = useStats();
+interface StatsSectionProps {
+  initialData?: HomeStats;
+}
+
+export const StatsSection = ({ initialData }: StatsSectionProps) => {
+  const { data: stats, isLoading, error } = useStats(initialData);
 
   if (error) {
     return null; // Можна показати фолбек або пропустити секцію
