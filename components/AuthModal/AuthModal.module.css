@@ -1,81 +1,36 @@
 .content {
   width: 100%;
-  max-width: 400px;
-  padding: 32px;
+  max-width: 100%;
 }
 
-/* ===== Form Container ===== */
 .formContainer {
   width: 100%;
 }
 
 .formTitle {
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 24px;
-  color: #1a1a1a;
-}
-
-.googleButton {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #374151;
-  font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  margin-bottom: 24px;
-}
-
-.googleButton:hover:not(:disabled) {
-  background-color: #f9fafb;
-}
-
-.googleButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.divider {
-  position: relative;
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.divider span {
-  display: inline-block;
-  background-color: #ffffff;
-  padding: 0 12px;
-  font-size: 12px;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.divider::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #e5e7eb;
-  z-index: -1;
-}
-
-/* ===== Form ===== */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   margin-bottom: 16px;
 }
 
+.formText {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text-form);
+  margin-bottom: 24px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .formGroup {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -83,22 +38,77 @@
 
 .input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  height: 48px;
+  padding: 14px 44px 14px 16px;
+  border: 1px solid rgba(18, 20, 23, 0.1);
+  border-radius: 12px;
   font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.2s ease;
+  line-height: 1.375;
+  color: var(--color-text-primary);
+  background-color: #ffffff;
+  transition: border-color 0.3s ease;
+}
+
+.input::placeholder {
+  color: var(--color-text-primary);
 }
 
 .input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary);
 }
 
-.input::placeholder {
-  color: #9ca3af;
+.buttonPassword {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.iconPasswordOff,
+.iconPassword {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-primary);
+}
+
+.submitButton {
+  width: 100%;
+  height: 52px;
+  margin-top: 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background-color: var(--color-primary);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.googleButton {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background-color: #3307fc;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--color-text-white);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .error {
@@ -107,109 +117,88 @@
   margin: 0;
 }
 
-.submitButton {
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 6px;
-  background-color: #3b82f6;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  margin-top: 8px;
+/* Hover only for devices that support hover */
+@media only screen and (hover: hover) {
+  .submitButton:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+  }
+
+  .googleButton:hover:not(:disabled) {
+    background-color: #5a36fc;
+  }
 }
 
-.submitButton:hover:not(:disabled) {
-  background-color: #2563eb;
+/* ======================================================
+   Tablet (≥768px)
+====================================================== */
+
+@media only screen and (min-width: 768px) {
+  .content {
+    max-width: 520px;
+  }
+
+  .formTitle {
+    font-size: 34px;
+    margin-bottom: 18px;
+  }
+
+  .formText {
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+
+  .input {
+    height: 52px;
+    font-size: 15px;
+  }
+
+  .submitButton {
+    height: 56px;
+    font-size: 17px;
+  }
 }
 
-.submitButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+/* ======================================================
+   Desktop (≥1024px) — твої стилі
+====================================================== */
 
-.switchForm {
-  text-align: center;
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0;
-}
+@media only screen and (min-width: 1440px) {
+  .content {
+    max-width: 438px;
+  }
 
-.switchLink {
-  background: none;
-  border: none;
-  color: #3b82f6;
-  cursor: pointer;
-  font-weight: 600;
-  padding: 0;
-  font-size: 13px;
-  text-decoration: none;
-}
+  .formTitle {
+    font-size: 40px;
+    margin-bottom: 20px;
+  }
 
-.switchLink:hover {
-  text-decoration: underline;
-}
+  .formText {
+    font-size: 16px;
+    line-height: 1.375;
+    margin-bottom: 40px;
+  }
 
-/* ===== Old styles (kept for compatibility) ===== */
-.title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: #1a1a1a;
-}
+  .form {
+    gap: 18px;
+  }
 
-.text {
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 24px;
-  text-align: center;
-}
+  .input {
+    width: 438px;
+    height: 54px;
+    padding: 17px 17px 17px 18px;
+    font-size: 16px;
+  }
 
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+  .buttonPassword {
+    right: 18px;
+    transform: none;
+    top: 17px;
+  }
 
-.primary,
-.secondary,
-.cancel {
-  padding: 12px 16px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.primary {
-  background-color: #3b82f6;
-  color: #ffffff;
-}
-
-.primary:hover {
-  background-color: #2563eb;
-}
-
-.secondary {
-  background-color: #e5e7eb;
-  color: #1f2937;
-}
-
-.secondary:hover {
-  background-color: #d1d5db;
-}
-
-.cancel {
-  background-color: transparent;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-}
-
-.cancel:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+  .submitButton {
+    width: 438px;
+    height: 60px;
+    font-size: 18px;
+    margin-top: 22px;
+  }
 }

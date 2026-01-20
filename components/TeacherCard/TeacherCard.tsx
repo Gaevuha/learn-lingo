@@ -3,13 +3,11 @@
 import { memo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { LuBookOpen } from "react-icons/lu";
 import { FaStar, FaHeart, FaRegHeart } from "react-icons/fa";
 
-import { TeacherCardProps } from "@/types/teacher";
+import { TeacherCardProps, BookingFormDataToSend } from "@/types/teacher";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useBooking } from "@/hooks/useBooking";
@@ -26,11 +24,10 @@ const bookingSchema = yup.object({
   name: yup.string().required("Name is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
   phone: yup.string().required("Phone is required"),
-  date: yup.string().required("Date is required"),
-  time: yup.string().required("Time is required"),
+  reason: yup.string().required("Select a reason"),
 });
 
-type BookingFormData = yup.InferType<typeof bookingSchema>;
+export type BookingFormData = yup.InferType<typeof bookingSchema>;
 
 function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
   const router = useRouter();
@@ -52,7 +49,7 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
 
   const isFavoriteCurrent = teacher.id ? isFavorite(teacher.id) : false;
 
-  // Close expanded state when clicking outside the card
+  // Закрити розгорнуту картку при кліку поза нею
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
@@ -68,16 +65,6 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isExpanded]);
-
-  /* =======================
-     Booking form
-  ======================= */
-  const {
-    formState: { errors },
-    reset,
-  } = useForm<BookingFormData>({
-    resolver: yupResolver(bookingSchema),
-  });
 
   /* =======================
      Favorite handler
@@ -132,22 +119,27 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
       return;
     }
 
-    const result = await bookTrialLesson({
-      teacherId: teacher.id,
-      teacherName: `${teacher.name} ${teacher.surname}`,
-      studentName: data.name,
-      email: data.email,
-      phone: data.phone,
-      date: data.date,
-      time: data.time,
-    });
+    try {
+      // Приводимо тип до того, що очікує bookTrialLesson
+      const bookingPayload: BookingFormDataToSend = {
+        teacherId: teacher.id,
+        teacherName: `${teacher.name} ${teacher.surname}`,
+        studentName: data.name,
+        email: data.email,
+        phone: data.phone,
+        reason: data.reason,
+      };
 
-    if (result.success) {
-      showToast(result.message, "success");
-      reset();
-      setShowBookingModal(false);
-    } else {
-      showToast(result.message, "error");
+      const result = await bookTrialLesson(bookingPayload);
+
+      if (result.success) {
+        showToast(result.message, "success");
+        setShowBookingModal(false);
+      } else {
+        showToast(result.message || "Booking failed", "error");
+      }
+    } catch (error) {
+      showToast("Unexpected error", "error");
     }
   };
 
@@ -178,27 +170,27 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
                 {teacher.name} {teacher.surname}
               </h3>
             </div>
-            <div className={styles.meta}>
-              <span>
+            <ul className={styles.metaList}>
+              <li>
                 <LuBookOpen className={styles.iconBook} />
                 Lessons online
-              </span>
+              </li>
 
-              <span>
+              <li>
                 Lessons done:{" "}
                 <b className={styles.lessonCount}>{teacher.lessons_done}</b>
-              </span>
-              <span>
+              </li>
+              <li>
                 <FaStar className={styles.iconStar} />
                 {teacher.rating}
-              </span>
-              <span className={styles.price}>
+              </li>
+              <li className={styles.price}>
                 Price / 1 hour:{" "}
                 <span className={styles.priceAccent}>
                   {teacher.price_per_hour}$
                 </span>
-              </span>
-            </div>
+              </li>
+            </ul>
             <button
               onClick={handleFavoriteClick}
               disabled={
@@ -214,8 +206,6 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
               )}
             </button>
           </div>
-
-          {/* Meta */}
 
           {/* Languages */}
           <p className={styles.speaks}>
@@ -326,6 +316,7 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
         isOpen={showBookingModal}
         onClose={() => setShowBookingModal(false)}
         teacherName={`${teacher.name} ${teacher.surname}`}
+        teacherAvatar={teacher.avatar_url}
         loading={bookingLoading}
         onSubmit={handleBookingSubmit}
       />

@@ -25,6 +25,9 @@
   --color-text-secondary: #8a8a89;
   --color-text-white: #ffffff;
 
+  /*Текст форми*/
+  --color-text-form: rgba(18, 20, 23, 0.8);
+
   /* Фони */
   --color-bg-primary: #f8f8f8;
   --color-bg-white: #ffffff;

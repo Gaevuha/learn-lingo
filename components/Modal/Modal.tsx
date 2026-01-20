@@ -2,15 +2,22 @@
 
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { MdOutlineClose } from "react-icons/md";
 import styles from "./Modal.module.css";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  width?: "auth" | "booking";
 }
 
-export default function Modal({ isOpen, onClose, children }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  children,
+  width = "auth",
+}: ModalProps) {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -30,15 +37,19 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
 
   if (!isOpen) return null;
 
+  const modalClassName = `${styles.modal} ${
+    width === "booking" ? styles.booking : styles.auth
+  }`;
+
   return createPortal(
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={modalClassName} onClick={(e) => e.stopPropagation()}>
         <button
           className={styles.closeButton}
           onClick={onClose}
           aria-label="Close modal"
         >
-          ×
+          <MdOutlineClose className={styles.iconClose} />
         </button>
 
         {children}

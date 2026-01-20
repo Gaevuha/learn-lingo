@@ -31,6 +31,11 @@ export interface BookingData {
   studentName: string;
   email: string;
   phone: string;
-  date: string;
-  time: string;
+  date?: string;
+  time?: string;
+  reason?: string;
 }
+
+export type BookingFormDataToSend = Omit<BookingData, "date" | "time"> & {
+  reason?: string;
+};

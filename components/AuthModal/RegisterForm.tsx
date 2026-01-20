@@ -1,62 +1,76 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import styles from "./AuthModal.module.css";
-
-const registerSchema = yup.object({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password")], "Passwords must match")
-    .required("Confirm password is required"),
-});
-
-type RegisterFormData = yup.InferType<typeof registerSchema>;
+import { FiEyeOff, FiEye } from "react-icons/fi";
 
 interface RegisterFormProps {
   onSuccess: () => void;
   onSwitchToLogin: () => void;
 }
 
-export default function RegisterForm({
-  onSuccess,
-  onSwitchToLogin,
-}: RegisterFormProps) {
-  const [loading, setLoading] = useState(false);
+export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const { signUp, signInWithGoogle } = useAuth();
   const { showToast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: yupResolver(registerSchema),
-  });
+  const handleSubmit = async (formData: FormData) => {
+    setLoading(true);
+    setError(null);
 
-  const onSubmit = async (data: RegisterFormData) => {
     try {
-      setLoading(true);
-      await signUp(data.name, data.email, data.password);
-      showToast("Registration successful!", "success");
-      onSuccess();
-    } catch (error: unknown) {
-      let message = "Registration error";
-      if (error && typeof error === "object" && "message" in error) {
-        message = (error as { message: string }).message;
+      const name = formData.get("name") as string;
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      // Проста валідація
+      if (!name?.trim() || !email?.trim() || !password) {
+        throw new Error("Будь ласка, заповніть всі поля");
       }
-      showToast(message, "error");
+
+      if (password.length < 6) {
+        throw new Error("Пароль має містити щонайменше 6 символів");
+      }
+
+      // Використовуємо ваш існуючий хук
+      await signUp(name.trim(), email.trim().toLowerCase(), password);
+
+      showToast("Реєстрація успішна!", "success");
+      onSuccess();
+    } catch (error) {
+      console.error("Registration error:", error);
+      let errorMessage = "Помилка реєстрації. Спробуйте ще раз.";
+
+      if (error instanceof Error) {
+        // Обробка специфічних помилок Firebase
+        const message = error.message.toLowerCase();
+
+        if (
+          message.includes("email-already-in-use") ||
+          message.includes("email_exists")
+        ) {
+          errorMessage =
+            "Цей email вже зареєстрований. Спробуйте інший або увійдіть в систему.";
+        } else if (message.includes("invalid-email")) {
+          errorMessage = "Невірний формат email.";
+        } else if (message.includes("weak-password")) {
+          errorMessage = "Пароль занадто слабкий. Оберіть надійніший пароль.";
+        } else if (message.includes("network")) {
+          errorMessage = "Проблема з мережею. Перевірте з'єднання.";
+        } else {
+          // Показуємо оригінальне повідомлення про помилку
+          errorMessage = error.message;
+        }
+      }
+
+      setError(errorMessage);
+      showToast(errorMessage, "error");
     } finally {
       setLoading(false);
     }
@@ -66,13 +80,17 @@ export default function RegisterForm({
     try {
       setGoogleLoading(true);
       await signInWithGoogle();
-      showToast("Google sign-up successful!", "success");
+      showToast("Успішний вхід через Google!", "success");
       onSuccess();
-    } catch (error: unknown) {
-      let message = "Google sign-up error";
-      if (error && typeof error === "object" && "message" in error) {
-        message = (error as { message: string }).message;
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      let message = "Помилка входу через Google";
+
+      if (error instanceof Error) {
+        message = error.message;
       }
+
+      setError(message);
       showToast(message, "error");
     } finally {
       setGoogleLoading(false);
@@ -81,63 +99,55 @@ export default function RegisterForm({
 
   return (
     <div className={styles.formContainer}>
-      <h3 className={styles.formTitle}>Create an account</h3>
+      <h3 className={styles.formTitle}>Registration</h3>
 
-      <button
-        onClick={handleGoogleSignIn}
-        disabled={googleLoading}
-        className={styles.googleButton}
-      >
-        {googleLoading ? "Signing up..." : "Sign up with Google"}
-      </button>
+      <p className={styles.formText}>
+        Thank you for your interest in our platform! In order to register, we
+        need some information. Please provide us with the following information
+      </p>
 
-      <div className={styles.divider}>
-        <span>Or continue with email</span>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+      <form action={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <input
-            {...register("name")}
-            placeholder="Full Name"
+            name="name"
+            placeholder="Name"
             className={styles.input}
+            required
           />
-          {errors.name && <p className={styles.error}>{errors.name.message}</p>}
         </div>
 
         <div className={styles.formGroup}>
           <input
-            {...register("email")}
+            name="email"
+            type="email"
             placeholder="Email"
             className={styles.input}
+            required
           />
-          {errors.email && (
-            <p className={styles.error}>{errors.email.message}</p>
-          )}
         </div>
 
         <div className={styles.formGroup}>
           <input
-            {...register("password")}
-            type="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             className={styles.input}
+            minLength={6}
+            required
           />
-          {errors.password && (
-            <p className={styles.error}>{errors.password.message}</p>
-          )}
-        </div>
-
-        <div className={styles.formGroup}>
-          <input
-            {...register("confirmPassword")}
-            type="password"
-            placeholder="Confirm Password"
-            className={styles.input}
-          />
-          {errors.confirmPassword && (
-            <p className={styles.error}>{errors.confirmPassword.message}</p>
-          )}
+          <button
+            type="button"
+            className={styles.buttonPassword}
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            disabled={loading}
+          >
+            {showPassword ? (
+              <FiEye className={styles.iconPassword} />
+            ) : (
+              <FiEyeOff className={styles.iconPasswordOff} />
+            )}
+          </button>
         </div>
 
         <button
@@ -147,14 +157,15 @@ export default function RegisterForm({
         >
           {loading ? "Creating account..." : "Sign up"}
         </button>
-      </form>
-
-      <p className={styles.switchForm}>
-        Already have an account?{" "}
-        <button onClick={onSwitchToLogin} className={styles.switchLink}>
-          Sign in
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className={styles.googleButton}
+        >
+          {googleLoading ? "Signing in..." : "Sign in with Google"}
         </button>
-      </p>
+      </form>
     </div>
   );
 }

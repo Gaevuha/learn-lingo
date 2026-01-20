@@ -32,7 +32,7 @@ export default function AuthModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} width="auth">
       <div className={styles.content}>
         {mode === "login" ? (
           <LoginForm

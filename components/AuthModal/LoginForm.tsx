@@ -1,46 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import styles from "./AuthModal.module.css";
-
-const loginSchema = yup.object({
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().min(6).required("Password is required"),
-});
-
-type LoginFormData = yup.InferType<typeof loginSchema>;
+import { FiEyeOff, FiEye } from "react-icons/fi";
 
 interface LoginFormProps {
   onSuccess: () => void;
   onSwitchToRegister: () => void;
 }
 
-export default function LoginForm({
-  onSuccess,
-  onSwitchToRegister,
-}: LoginFormProps) {
+export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const { signIn, signInWithGoogle } = useAuth();
   const { showToast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: yupResolver(loginSchema),
-  });
-
-  const onSubmit = async (data: LoginFormData) => {
+  const handleSubmit = async (formData: FormData) => {
     try {
       setLoading(true);
-      await signIn(data.email, data.password);
+
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      if (!email || !password) {
+        showToast("Please fill all fields", "error");
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast("Password must be at least 6 characters", "error");
+        return;
+      }
+
+      await signIn(email, password);
       showToast("Login successful!", "success");
       onSuccess();
     } catch (error: unknown) {
@@ -73,42 +69,44 @@ export default function LoginForm({
 
   return (
     <div className={styles.formContainer}>
-      <h3 className={styles.formTitle}>Sign in</h3>
+      <h3 className={styles.formTitle}>Log In</h3>
+      <p className={styles.formText}>
+        Welcome back! Please enter your credentials to access your account.
+      </p>
 
-      <button
-        onClick={handleGoogleSignIn}
-        disabled={googleLoading}
-        className={styles.googleButton}
-      >
-        {googleLoading ? "Signing in..." : "Sign in with Google"}
-      </button>
-
-      <div className={styles.divider}>
-        <span>Or continue with email</span>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+      <form action={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <input
-            {...register("email")}
+            name="email"
+            type="email"
             placeholder="Email"
             className={styles.input}
+            required
           />
-          {errors.email && (
-            <p className={styles.error}>{errors.email.message}</p>
-          )}
         </div>
 
         <div className={styles.formGroup}>
           <input
-            {...register("password")}
-            type="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             className={styles.input}
+            minLength={6}
+            required
           />
-          {errors.password && (
-            <p className={styles.error}>{errors.password.message}</p>
-          )}
+
+          <button
+            type="button"
+            className={styles.buttonPassword}
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label="Toggle password visibility"
+          >
+            {showPassword ? (
+              <FiEye className={styles.iconPassword} />
+            ) : (
+              <FiEyeOff className={styles.iconPasswordOff} />
+            )}
+          </button>
         </div>
 
         <button
@@ -118,14 +116,16 @@ export default function LoginForm({
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
-      </form>
 
-      <p className={styles.switchForm}>
-        Don&apos;t have an account?{" "}
-        <button onClick={onSwitchToRegister} className={styles.switchLink}>
-          Sign up
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className={styles.googleButton}
+        >
+          {googleLoading ? "Signing in..." : "Sign in with Google"}
         </button>
-      </p>
+      </form>
     </div>
   );
 }

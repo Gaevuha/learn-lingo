@@ -10,27 +10,38 @@
 
 .modal {
   background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  max-width: 28rem;
+  border-radius: 30px;
   width: 100%;
-  margin: 0 1rem;
   position: relative;
+  padding: 64px;
+}
+
+.auth {
+  max-width: 566px;
+}
+
+.booking {
+  max-width: 600px;
 }
 
 .closeButton {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  color: #6b7280;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
   background: none;
   border: none;
-  font-size: 1.5rem;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.3s;
 }
 
-.closeButton:hover {
-  color: #374151;
+.iconClose {
+  width: 32px;
+  height: 32px;
+  fill: var(--color-text-primary);
 }
 
+.closeButton .iconClose:hover {
+  fill: #374151;
+}

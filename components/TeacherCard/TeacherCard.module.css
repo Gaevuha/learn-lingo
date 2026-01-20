@@ -108,7 +108,7 @@
 }
 
 /* Meta information */
-.meta {
+.metaList {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -117,7 +117,7 @@
   line-height: 1.5;
 }
 
-.meta span {
+.metaList li {
   display: flex;
   align-items: center;
   /* gap: 8px; */
@@ -364,14 +364,14 @@
     font-size: 24px;
   }
 
-  .meta {
+  .metaList {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 12px;
     font-size: 15px;
   }
 
-  .meta span::before {
+  .metaList li::before {
     content: "";
     display: inline-block;
     width: 1px;
@@ -476,7 +476,7 @@
     font-size: 26px;
   }
 
-  .meta {
+  .metaList {
     margin-right: 64px;
     margin-left: auto;
     gap: 16px;
