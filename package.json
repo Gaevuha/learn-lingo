@@ -33,7 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
     "firebase-admin": "^13.6.0",
-    "ts-node": "^10.9.2",
+    "ts-node": "^1.7.1",
     "typescript": "^5"
   },
   "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",

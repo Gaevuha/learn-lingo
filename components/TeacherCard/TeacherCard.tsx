@@ -1,9 +1,8 @@
 "use client";
 
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import * as yup from "yup";
 import { LuBookOpen } from "react-icons/lu";
 import { FaStar, FaHeart, FaRegHeart } from "react-icons/fa";
 
@@ -17,17 +16,12 @@ import BookingModal from "@/components/BookingModal/BookingModal";
 
 import styles from "./TeacherCard.module.css";
 
-/* =======================
-   Booking form schema
-======================= */
-const bookingSchema = yup.object({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  phone: yup.string().required("Phone is required"),
-  reason: yup.string().required("Select a reason"),
-});
-
-export type BookingFormData = yup.InferType<typeof bookingSchema>;
+export interface BookingFormData {
+  name: string;
+  email: string;
+  phone: string;
+  reason: string;
+}
 
 function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
   const router = useRouter();
@@ -49,7 +43,28 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
 
   const isFavoriteCurrent = teacher.id ? isFavorite(teacher.id) : false;
 
-  // Закрити розгорнуту картку при кліку поза нею
+  const closeAll = useCallback(() => {
+    setIsExpanded(false);
+    setShowBookingModal(false);
+  }, []);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && (isExpanded || showBookingModal)) {
+        e.preventDefault();
+        closeAll();
+      }
+    };
+
+    if (isExpanded || showBookingModal) {
+      document.addEventListener("keydown", handleEsc);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [isExpanded, showBookingModal, closeAll]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
@@ -66,9 +81,6 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
     };
   }, [isExpanded]);
 
-  /* =======================
-     Favorite handler
-  ======================= */
   const handleFavoriteClick = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -103,12 +115,9 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
     }
   };
 
-  /* =======================
-     Booking submit
-  ======================= */
   const handleBookingSubmit = async (data: BookingFormData) => {
     if (!user) {
-      setShowBookingModal(false);
+      closeAll();
       const ru = pathname || "/";
       router.push(`/auth/login?returnUrl=${encodeURIComponent(ru)}`);
       return;
@@ -120,7 +129,6 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
     }
 
     try {
-      // Приводимо тип до того, що очікує bookTrialLesson
       const bookingPayload: BookingFormDataToSend = {
         teacherId: teacher.id,
         teacherName: `${teacher.name} ${teacher.surname}`,
@@ -134,7 +142,7 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
 
       if (result.success) {
         showToast(result.message, "success");
-        setShowBookingModal(false);
+        closeAll();
       } else {
         showToast(result.message || "Booking failed", "error");
       }
@@ -143,12 +151,20 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
     }
   };
 
+  const handleBookButtonClick = () => {
+    if (!user) {
+      const ru = pathname || "/";
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(ru)}`);
+    } else {
+      setShowBookingModal(true);
+    }
+  };
+
   if (!teacher) return null;
 
   return (
     <>
       <div ref={cardRef} className={styles.card}>
-        {/* Avatar */}
         <div className={styles.avatarContainer}>
           <Image
             src={teacher.avatar_url || "/avatar-placeholder.png"}
@@ -160,9 +176,7 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
           <span className={styles.statusIndicator} />
         </div>
 
-        {/* Content */}
         <div className={styles.content}>
-          {/* Header */}
           <div className={styles.header}>
             <div>
               <p className={styles.languagesLabel}>Languages</p>
@@ -207,12 +221,10 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
             </button>
           </div>
 
-          {/* Languages */}
           <p className={styles.speaks}>
             <b>Speaks:</b> {teacher.languages?.join(", ")}
           </p>
 
-          {/* Info */}
           {teacher.lesson_info && (
             <p>
               <b>Lesson info:</b> {teacher.lesson_info}
@@ -225,7 +237,6 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
             </p>
           )}
 
-          {/* Read more */}
           {!isExpanded && (
             <button
               className={styles.readMoreButton}
@@ -235,7 +246,6 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
             </button>
           )}
 
-          {/* Expanded */}
           {isExpanded && (
             <div className={styles.expanded}>
               <p>
@@ -269,7 +279,6 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
             </div>
           )}
 
-          {/* Levels */}
           <div className={styles.levels}>
             {teacher.levels?.map((level) => {
               const isActive =
@@ -290,20 +299,10 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
             })}
           </div>
 
-          {/* Booking */}
           {isExpanded && (
             <button
               className={styles.bookButton}
-              onClick={() => {
-                if (!user) {
-                  const ru = pathname || "/";
-                  router.push(
-                    `/auth/login?returnUrl=${encodeURIComponent(ru)}`
-                  );
-                } else {
-                  setShowBookingModal(true);
-                }
-              }}
+              onClick={handleBookButtonClick}
             >
               Book trial lesson
             </button>
@@ -311,22 +310,17 @@ function TeacherCard({ teacher, selectedLevel }: TeacherCardProps) {
         </div>
       </div>
 
-      {/* Booking modal */}
       <BookingModal
         isOpen={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
+        onClose={closeAll}
         teacherName={`${teacher.name} ${teacher.surname}`}
         teacherAvatar={teacher.avatar_url}
-        loading={bookingLoading}
         onSubmit={handleBookingSubmit}
       />
     </>
   );
 }
 
-/* =======================
-   Memo
-======================= */
 export default memo(TeacherCard, (prev, next) => {
   return (
     prev.teacher.id === next.teacher.id &&
