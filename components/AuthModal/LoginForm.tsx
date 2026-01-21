@@ -156,16 +156,15 @@ export default function LoginForm({
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading || loading}
+          className={styles.googleButton}
+        >
+          {googleLoading ? "Signing in..." : "Sign in with Google"}
+        </button>
       </form>
-
-      <button
-        type="button"
-        onClick={handleGoogleSignIn}
-        disabled={googleLoading || loading}
-        className={styles.googleButton}
-      >
-        {googleLoading ? "Signing in..." : "Sign in with Google"}
-      </button>
     </div>
   );
 }
