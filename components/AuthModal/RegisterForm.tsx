@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import * as yup from "yup";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import styles from "./AuthModal.module.css";
@@ -10,6 +11,28 @@ interface RegisterFormProps {
   onSuccess: () => void;
   onSwitchToLogin: () => void;
 }
+
+// Схема валідації для реєстрації
+const registerSchema = yup.object({
+  name: yup
+    .string()
+    .required("Name is required")
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must be less than 50 characters")
+    .trim(),
+  email: yup
+    .string()
+    .email("Invalid email address")
+    .required("Email is required")
+    .trim()
+    .lowercase(),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
+
+type RegisterFormData = yup.InferType<typeof registerSchema>;
 
 export default function RegisterForm({ onSuccess }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,29 +48,38 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     setError(null);
 
     try {
-      const name = formData.get("name") as string;
-      const email = formData.get("email") as string;
-      const password = formData.get("password") as string;
+      const rawData = {
+        name: formData.get("name") as string,
+        email: formData.get("email") as string,
+        password: formData.get("password") as string,
+      };
 
-      // Проста валідація
-      if (!name?.trim() || !email?.trim() || !password) {
-        throw new Error("Будь ласка, заповніть всі поля");
-      }
-
-      if (password.length < 6) {
-        throw new Error("Пароль має містити щонайменше 6 символів");
-      }
+      // Валідація через Yup
+      const validatedData: RegisterFormData = await registerSchema.validate(
+        rawData,
+        {
+          abortEarly: false,
+        }
+      );
 
       // Використовуємо ваш існуючий хук
-      await signUp(name.trim(), email.trim().toLowerCase(), password);
+      await signUp(
+        validatedData.name,
+        validatedData.email,
+        validatedData.password
+      );
 
-      showToast("Реєстрація успішна!", "success");
+      showToast("Registration successful!", "success");
       onSuccess();
     } catch (error) {
       console.error("Registration error:", error);
-      let errorMessage = "Помилка реєстрації. Спробуйте ще раз.";
 
-      if (error instanceof Error) {
+      let errorMessage = "Registration error. Please try again.";
+
+      if (error instanceof yup.ValidationError) {
+        // Беремо першу помилку валідації
+        errorMessage = error.errors[0] || "Validation error";
+      } else if (error instanceof Error) {
         // Обробка специфічних помилок Firebase
         const message = error.message.toLowerCase();
 
@@ -56,15 +88,15 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
           message.includes("email_exists")
         ) {
           errorMessage =
-            "Цей email вже зареєстрований. Спробуйте інший або увійдіть в систему.";
+            "This email is already registered. Please try a different email or sign in.";
         } else if (message.includes("invalid-email")) {
-          errorMessage = "Невірний формат email.";
+          errorMessage = "Invalid email format.";
         } else if (message.includes("weak-password")) {
-          errorMessage = "Пароль занадто слабкий. Оберіть надійніший пароль.";
+          errorMessage =
+            "Password is too weak. Please choose a stronger password.";
         } else if (message.includes("network")) {
-          errorMessage = "Проблема з мережею. Перевірте з'єднання.";
+          errorMessage = "Network problem. Please check your connection.";
         } else {
-          // Показуємо оригінальне повідомлення про помилку
           errorMessage = error.message;
         }
       }
@@ -80,12 +112,12 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     try {
       setGoogleLoading(true);
       await signInWithGoogle();
-      showToast("Успішний вхід через Google!", "success");
+      showToast("Google sign-in successful!", "success");
       onSuccess();
     } catch (error) {
       console.error("Google sign-in error:", error);
-      let message = "Помилка входу через Google";
 
+      let message = "Google sign-in error";
       if (error instanceof Error) {
         message = error.message;
       }

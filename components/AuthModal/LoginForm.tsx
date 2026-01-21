@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import * as yup from "yup";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import styles from "./AuthModal.module.css";
@@ -11,40 +12,66 @@ interface LoginFormProps {
   onSwitchToRegister: () => void;
 }
 
-export default function LoginForm({ onSuccess }: LoginFormProps) {
+// Схема валідації для логіну
+const loginSchema = yup.object({
+  email: yup
+    .string()
+    .email("Invalid email address")
+    .required("Email is required")
+    .trim()
+    .lowercase(),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
+
+type LoginFormData = yup.InferType<typeof loginSchema>;
+
+export default function LoginForm({
+  onSuccess,
+  onSwitchToRegister,
+}: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { signIn, signInWithGoogle } = useAuth();
   const { showToast } = useToast();
 
   const handleSubmit = async (formData: FormData) => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
+      const rawData = {
+        email: formData.get("email") as string,
+        password: formData.get("password") as string,
+      };
 
-      const email = formData.get("email") as string;
-      const password = formData.get("password") as string;
+      // Валідація через Yup
+      const validatedData: LoginFormData = await loginSchema.validate(rawData, {
+        abortEarly: false,
+      });
 
-      if (!email || !password) {
-        showToast("Please fill all fields", "error");
-        return;
-      }
-
-      if (password.length < 6) {
-        showToast("Password must be at least 6 characters", "error");
-        return;
-      }
-
-      await signIn(email, password);
+      await signIn(validatedData.email, validatedData.password);
       showToast("Login successful!", "success");
       onSuccess();
-    } catch (error: unknown) {
-      let message = "Login error";
-      if (error && typeof error === "object" && "message" in error) {
-        message = (error as { message: string }).message;
+    } catch (error) {
+      console.error("Login error:", error);
+
+      let errorMessage = "Login error";
+
+      if (error instanceof yup.ValidationError) {
+        // Беремо першу помилку валідації
+        errorMessage = error.errors[0] || "Validation error";
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
-      showToast(message, "error");
+
+      setError(errorMessage);
+      showToast(errorMessage, "error");
     } finally {
       setLoading(false);
     }
@@ -56,11 +83,15 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       await signInWithGoogle();
       showToast("Google sign-in successful!", "success");
       onSuccess();
-    } catch (error: unknown) {
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+
       let message = "Google sign-in error";
-      if (error && typeof error === "object" && "message" in error) {
-        message = (error as { message: string }).message;
+      if (error instanceof Error) {
+        message = error.message;
       }
+
+      setError(message);
       showToast(message, "error");
     } finally {
       setGoogleLoading(false);
@@ -82,6 +113,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             placeholder="Email"
             className={styles.input}
             required
+            disabled={loading}
           />
         </div>
 
@@ -93,6 +125,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             className={styles.input}
             minLength={6}
             required
+            disabled={loading}
           />
 
           <button
@@ -100,6 +133,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             className={styles.buttonPassword}
             onClick={() => setShowPassword((prev) => !prev)}
             aria-label="Toggle password visibility"
+            disabled={loading}
           >
             {showPassword ? (
               <FiEye className={styles.iconPassword} />
@@ -109,6 +143,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           </button>
         </div>
 
+        {error && (
+          <div className={styles.errorMessage}>
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={loading}
@@ -116,16 +156,33 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
-
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={googleLoading}
-          className={styles.googleButton}
-        >
-          {googleLoading ? "Signing in..." : "Sign in with Google"}
-        </button>
       </form>
+
+      <div className={styles.divider}>
+        <span>or</span>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={googleLoading || loading}
+        className={styles.googleButton}
+      >
+        {googleLoading ? "Signing in..." : "Sign in with Google"}
+      </button>
+
+      <div className={styles.switchForm}>
+        <p>
+          Don&apos;t have an account?{" "}
+          <button
+            type="button"
+            onClick={onSwitchToRegister}
+            className={styles.switchLink}
+          >
+            Sign up
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

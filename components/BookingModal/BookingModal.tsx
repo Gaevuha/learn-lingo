@@ -2,23 +2,29 @@
 
 import Image from "next/image";
 import { useState } from "react";
-
+import * as yup from "yup";
 import Modal from "@/components/Modal/Modal";
 import styles from "./BookingModal.module.css";
 
-export interface BookingFormData {
-  name: string;
-  email: string;
-  phone: string;
-  reason: string;
-}
+// Схема валідації Yup
+const bookingSchema = yup.object({
+  name: yup.string().required("Name is required").trim(),
+  email: yup
+    .string()
+    .email("Invalid email")
+    .required("Email is required")
+    .trim(),
+  phone: yup.string().required("Phone is required").trim(),
+  reason: yup.string().required("Select a reason"),
+});
+
+export type BookingFormData = yup.InferType<typeof bookingSchema>;
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   teacherName: string;
   teacherAvatar?: string;
-  loading: boolean;
   onSubmit: (data: BookingFormData) => Promise<void>;
 }
 
@@ -27,41 +33,51 @@ export default function BookingModal({
   onClose,
   teacherName,
   teacherAvatar,
-  loading,
   onSubmit,
 }: BookingModalProps) {
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const data: BookingFormData = {
+      // Отримуємо дані з форми
+      const rawData = {
         name: formData.get("name") as string,
         email: formData.get("email") as string,
         phone: formData.get("phone") as string,
         reason: formData.get("reason") as string,
       };
 
-      // Валідація
-      if (!data.name || !data.email || !data.phone || !data.reason) {
-        setError("Please fill all required fields");
-        return;
-      }
+      // Валідація через Yup
+      const validatedData = await bookingSchema.validate(rawData, {
+        abortEarly: false,
+      });
 
-      if (!data.email.includes("@")) {
-        setError("Please enter a valid email");
-        return;
-      }
-
-      setError(null);
-      await onSubmit(data);
+      // Викликаємо onSubmit з перевіреними даними
+      await onSubmit(validatedData);
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      console.error("Booking error:", error);
+
+      // Обробка помилок Yup
+      if (error instanceof yup.ValidationError) {
+        // Беремо першу помилку
+        setError(error.errors[0] || "Validation error");
+      } else if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} width="booking">
-      <form className={styles.bookingForm} action={handleSubmit} noValidate>
+      <form action={handleSubmit} className={styles.bookingForm}>
         {/* Header */}
         <h2 className={styles.title}>Book trial lesson</h2>
         <p className={styles.subtitle}>
@@ -92,31 +108,52 @@ export default function BookingModal({
         {/* Radio group */}
         <div className={styles.radioGroup}>
           <label className={styles.radio}>
-            <input type="radio" name="reason" value="career" defaultChecked />
+            <input
+              type="radio"
+              name="reason"
+              value="career"
+              defaultChecked
+              disabled={loading}
+            />
             <span />
             Career and business
           </label>
 
           <label className={styles.radio}>
-            <input type="radio" name="reason" value="kids" />
+            <input type="radio" name="reason" value="kids" disabled={loading} />
             <span />
             Lesson for kids
           </label>
 
           <label className={styles.radio}>
-            <input type="radio" name="reason" value="abroad" />
+            <input
+              type="radio"
+              name="reason"
+              value="abroad"
+              disabled={loading}
+            />
             <span />
             Living abroad
           </label>
 
           <label className={styles.radio}>
-            <input type="radio" name="reason" value="exams" />
+            <input
+              type="radio"
+              name="reason"
+              value="exams"
+              disabled={loading}
+            />
             <span />
             Exams and coursework
           </label>
 
           <label className={styles.radio}>
-            <input type="radio" name="reason" value="hobby" />
+            <input
+              type="radio"
+              name="reason"
+              value="hobby"
+              disabled={loading}
+            />
             <span />
             Culture, travel or hobby
           </label>
@@ -132,6 +169,7 @@ export default function BookingModal({
             placeholder="Full Name"
             className={styles.input}
             required
+            disabled={loading}
           />
 
           <input
@@ -140,6 +178,7 @@ export default function BookingModal({
             placeholder="Email"
             className={styles.input}
             required
+            disabled={loading}
           />
 
           <input
@@ -148,6 +187,7 @@ export default function BookingModal({
             placeholder="Phone number"
             className={styles.input}
             required
+            disabled={loading}
           />
         </div>
 
