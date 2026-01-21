@@ -158,10 +158,6 @@ export default function LoginForm({
         </button>
       </form>
 
-      <div className={styles.divider}>
-        <span>or</span>
-      </div>
-
       <button
         type="button"
         onClick={handleGoogleSignIn}
@@ -170,19 +166,6 @@ export default function LoginForm({
       >
         {googleLoading ? "Signing in..." : "Sign in with Google"}
       </button>
-
-      <div className={styles.switchForm}>
-        <p>
-          Don&apos;t have an account?{" "}
-          <button
-            type="button"
-            onClick={onSwitchToRegister}
-            className={styles.switchLink}
-          >
-            Sign up
-          </button>
-        </p>
-      </div>
     </div>
   );
 }
